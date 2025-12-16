@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { Navbar } from '@/components/navbar';
 
 interface Prediction {
   _id: string;
@@ -31,6 +31,7 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const [id, setId] = useState<string>('');
+  const currentUserEmail = sessionStorage.getItem('userEmail') || '';
 
   useEffect(() => {
     params.then((p) => {
@@ -76,28 +77,14 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <h1 className="text-2xl font-bold text-gray-900">
-              Prediction Details
-            </h1>
-            <Link
-              href="/leaderboard"
-              className="text-gray-600 hover:text-gray-900"
-            >
-              Back to Leaderboard
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <Navbar current='Prediction Details' email={currentUserEmail} />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex justify-between items-start mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
-                {prediction.userName}'s Prediction
+                {prediction.userName}&apos;s Prediction
               </h2>
               <p className="text-gray-500 mt-1">
                 Created {new Date(prediction.createdAt).toLocaleDateString()}

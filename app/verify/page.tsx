@@ -44,6 +44,8 @@ function VerifyContent() {
         throw new Error(data.error || 'Verification failed');
       }
 
+      sessionStorage.setItem('userEmail', email || '');
+
       router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
