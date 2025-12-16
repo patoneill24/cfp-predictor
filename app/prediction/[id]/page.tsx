@@ -31,7 +31,6 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const [id, setId] = useState<string>('');
-  const currentUserEmail = sessionStorage.getItem('userEmail') || '';
 
   useEffect(() => {
     params.then((p) => {
@@ -77,7 +76,7 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar current='Prediction Details' email={currentUserEmail} />
+      <Navbar current='Prediction Details' />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
