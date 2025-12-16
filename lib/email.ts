@@ -12,7 +12,7 @@ export async function sendOTPEmail(email: string, code: string) {
   console.log(`=================\n`);
 
   await resend.emails.send({
-    from: 'CFB Playoff Predictor <onboarding@resend.dev>',
+    from: 'Bracket-IQ <otp@mail.bracket-iq.app>',
     to: ['delivered@resend.dev','bounced@resend.dev','complained@resend.dev'],
     subject: 'Your Login Code',
     html: `<p>Your verification code is: <strong>${code}</strong></p><p>This code expires in 10 minutes.</p>`,
@@ -31,7 +31,7 @@ export async function sendWelcomeEmail(email: string) {
 
   const fiveMinutesFromNow = new Date(Date.now() + 1000 * 60 * 5).toISOString();
   await resend.emails.send({
-    from: 'CFP <onboarding@resend.dev>',
+    from: 'Bracket-IQ <welcome@mail.bracket-iq.app>',
     to: ['delivered@resend.dev','bounced@resend.dev','complained@resend.dev'],
     subject: 'Welcome to CFB Playoff Predictions!',
     html: '<p>Thank you for signing up for CFB Playoff Predictions! We are excited to have you on board.</p>',
