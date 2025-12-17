@@ -1,10 +1,10 @@
 import { MongoClient, Db } from 'mongodb';
 
-if (!process.env.DEV_CONNECTION_STRING) {
+if (!process.env.CONNECTION_STRING) {
   throw new Error('Please add your MongoDB CONNECTION_STRING to .env.local');
 }
 
-const uri = process.env.DEV_CONNECTION_STRING;
+const uri = process.env.CONNECTION_STRING;
 const options = {};
 
 let client: MongoClient;
