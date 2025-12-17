@@ -5,9 +5,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '@/components/navbar';
 import { DeleteDialog } from '@/components/delete-dialog';
+import { NamePredictionModal } from '@/components/name-prediction-modal';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Prediction {
   _id: string;
+  name: string;
   score: number;
   createdAt: string;
   bracket: {
@@ -19,10 +22,11 @@ interface Prediction {
 
 export default function DashboardPage() {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [predictionNames, setPredictionNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [predictionToDelete, setPredictionToDelete] = useState<{ id: string; number: number } | null>(null);
+  const [nameModalOpen, setNameModalOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -31,9 +35,10 @@ export default function DashboardPage() {
 
   const fetchData = async () => {
     try {
-      const [userRes, predictionsRes] = await Promise.all([
+      const [userRes, predictionsRes, namesRes] = await Promise.all([
         fetch('/api/auth/me'),
         fetch('/api/predictions'),
+        fetch('/api/predictions/names'),
       ]);
 
       if (!userRes.ok) {
@@ -41,12 +46,17 @@ export default function DashboardPage() {
         return;
       }
 
-      const userData = await userRes.json();
-      setUser(userData.user);
-
       if (predictionsRes.ok) {
         const predictionsData = await predictionsRes.json();
         setPredictions(predictionsData.predictions);
+      }
+      if (namesRes.ok) {
+        const namesData = await namesRes.json();
+        console.log('Fetched prediction names response:', namesData);
+        setPredictionNames(namesData.predictions.map((p: {_id:string, name:string}) => p.name));
+        console.log('Fetched prediction names:', namesData.predictions.map((p: {_id:string, name:string}) => p.name));
+      }else{
+        console.error('Failed to fetch prediction names');
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -76,6 +86,16 @@ export default function DashboardPage() {
     }
   };
 
+  const handleNameSubmit = (name: string) => {
+    const existingNames = predictionNames.map((p) => p.toLowerCase());
+    if (existingNames.includes(name.toLowerCase())) {
+      alert('There is already a prediction with that name. Please choose a different name.');
+      return;
+    }
+    setNameModalOpen(false);
+    router.push(`/create?name=${encodeURIComponent(name)}`);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -95,12 +115,23 @@ export default function DashboardPage() {
               Create and manage your playoff bracket predictions
             </p>
           </div>
-          <Link
-            href="/create"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          >
-            Create New Prediction
-          </Link>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => setNameModalOpen(true)}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={predictions.length >= 5}
+              >
+                Create New Prediction
+              </button>
+            </TooltipTrigger>
+            
+            {predictions.length >=1 && (
+              <TooltipContent>
+                You have reached the maximum of 5 predictions.
+              </TooltipContent>
+            )}
+          </Tooltip>
         </div>
 
         {predictions.length === 0 ? (
@@ -111,12 +142,12 @@ export default function DashboardPage() {
             <p className="text-gray-600 mb-6">
               Create your first bracket prediction to get started!
             </p>
-            <Link
-              href="/create"
+            <button
+              onClick={() => setNameModalOpen(true)}
               className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
             >
               Create Prediction
-            </Link>
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -128,7 +159,7 @@ export default function DashboardPage() {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
-                      Prediction #{predictions.length - index}
+                      {prediction.name}
                     </h3>
                     <p className="text-sm text-gray-500">
                       {new Date(prediction.createdAt).toLocaleDateString()}
@@ -176,6 +207,12 @@ export default function DashboardPage() {
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleDeleteConfirm}
         predictionNumber={predictionToDelete?.number}
+      />
+
+      <NamePredictionModal
+        open={nameModalOpen}
+        onOpenChange={setNameModalOpen}
+        onSubmit={handleNameSubmit}
       />
     </div>
   );

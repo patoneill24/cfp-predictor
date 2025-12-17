@@ -8,6 +8,7 @@ import { Navbar } from '@/components/navbar';
 interface LeaderboardEntry {
   _id: string;
   userName: string;
+  name: string
   score: number;
   createdAt: string;
   rank: number;
@@ -21,7 +22,6 @@ interface LeaderboardEntry {
 
 export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [user, setUser] = useState<{ email: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -43,9 +43,6 @@ export default function LeaderboardPage() {
         return;
       }
 
-      const userData = await userRes.json();
-      setUser(userData.user);
-
       if (leaderboardRes.ok) {
         const data = await leaderboardRes.json();
         setLeaderboard(data.leaderboard);
@@ -56,11 +53,6 @@ export default function LeaderboardPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/');
   };
 
   if (loading) {
@@ -92,7 +84,7 @@ export default function LeaderboardPage() {
                     Rank
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    User
+                    Prediction Name
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Score
@@ -132,7 +124,7 @@ export default function LeaderboardPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {entry.userName}
+                        {entry.name}
                         {entry.isCurrentUser && (
                           <span className="ml-2 text-xs text-blue-600 font-medium">
                             (You)

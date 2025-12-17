@@ -29,6 +29,7 @@ export interface Prediction {
   _id?: ObjectId;
   userId: ObjectId;
   userName: string; // user's email for display
+  name: string; // custom name for the prediction
   createdAt: Date;
   updatedAt: Date;
   bracket: Bracket;

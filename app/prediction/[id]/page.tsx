@@ -7,6 +7,7 @@ import { Navbar } from '@/components/navbar';
 interface Prediction {
   _id: string;
   userName: string;
+  name:string;
   score: number;
   createdAt: string;
   bracket: {
@@ -83,7 +84,7 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
           <div className="flex justify-between items-start mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
-                {prediction.userName}&apos;s Prediction
+                {prediction.name}
               </h2>
               <p className="text-gray-500 mt-1">
                 Created {new Date(prediction.createdAt).toLocaleDateString()}

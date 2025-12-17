@@ -38,11 +38,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { bracket } = await request.json();
+    const { bracket, name } = await request.json();
 
     if (!bracket) {
       return NextResponse.json(
         { error: 'Bracket data is required' },
+        { status: 400 }
+      );
+    }
+
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return NextResponse.json(
+        { error: 'Prediction name is required' },
         { status: 400 }
       );
     }
@@ -66,6 +73,7 @@ export async function POST(request: NextRequest) {
     const prediction: Prediction = {
       userId: new ObjectId(session.userId),
       userName: session.email,
+      name: name.trim(),
       bracket,
       score: 0,
       createdAt: new Date(),

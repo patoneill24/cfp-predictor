@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { BracketPredictor } from '@/components/bracket';
 import type { Team } from '@/components/bracket';
@@ -152,7 +152,19 @@ export default function CreatePage() {
   const [showModal, setShowModal] = useState(false);
   const [bracketData, setBracketData] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  const [predictionName, setPredictionName] = useState<string>('');
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const name = searchParams.get('name');
+    if (name) {
+      setPredictionName(name);
+    } else {
+      // Redirect back to dashboard if no name is provided
+      router.push('/dashboard');
+    }
+  }, [searchParams, router]);
 
   // const handleSaveBracket = async (data: any) => {
   //   // This would be called from the BracketPredictor component
@@ -215,7 +227,7 @@ export default function CreatePage() {
       const response = await fetch('/api/predictions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bracket }),
+        body: JSON.stringify({ bracket, name: predictionName }),
       });
 
       if (!response.ok) {
