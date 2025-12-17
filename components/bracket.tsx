@@ -240,8 +240,8 @@ export function BracketPredictor({ onSave, readOnly = false, name }: BracketPred
         </div>
       </div>
 
-      <div>
-        <div className="flex gap-6 md:gap-8">
+      <div className="overflow-x-auto overflow-y-hidden">
+        <div className="flex gap-6 md:gap-8 min-w-max">
           {/* First Round */}
           <div className="flex flex-col gap-4">
             <h2 className="mb-2 text-center text-xl font-bold">First Round</h2>

@@ -15,14 +15,14 @@ interface DeleteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
-  predictionNumber?: number;
+  predictionName?: string;
 }
 
 export function DeleteDialog({
   open,
   onOpenChange,
   onConfirm,
-  predictionNumber,
+  predictionName,
 }: DeleteDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -30,7 +30,7 @@ export function DeleteDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Prediction?</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete {predictionNumber ? `Prediction #${predictionNumber}` : 'this prediction'}?
+            Are you sure you want to delete {predictionName ? `"${predictionName}"` : 'this prediction'}?
             This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>

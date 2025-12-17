@@ -1,9 +1,16 @@
 "use client";
-import { Trophy } from "lucide-react";
+import { Trophy, Menu } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "./ui/button";
-import { useSyncExternalStore } from "react";
+import { useSyncExternalStore, useState } from "react";
+import { UserDropdown } from "./user-dropdown";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "./ui/sheet";
 
 interface NavbarProps {
   current: string;
@@ -25,6 +32,7 @@ function subscribe(callback: () => void) {
 export function Navbar({ current }: NavbarProps) {
   const router = useRouter();
   const email = useSyncExternalStore(subscribe, getEmailSnapshot, getServerSnapshot);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = async () => {
     sessionStorage.removeItem('userEmail');
@@ -36,13 +44,14 @@ export function Navbar({ current }: NavbarProps) {
       <nav className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-4">
+            {/* Desktop Layout */}
+            <div className="hidden md:flex items-center gap-4">
               <div className="flex items-center gap-8">
                 <Trophy className="w-8 h-8 text-yellow-500" />
                 <h1 className="text-2xl font-bold text-gray-900">
                   Bracket-IQ
                 </h1>
-                <div className="hidden md:flex gap-6">
+                <div className="flex gap-6">
                   <Link
                     href="/dashboard"
                     className={current === "dashboard" ? "text-blue-600 font-medium hover:text-blue-700" : "text-gray-600 hover:text-gray-900"}
@@ -58,14 +67,55 @@ export function Navbar({ current }: NavbarProps) {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">{email}</span>
-              <Button
-                onClick={handleLogout}
-                className="bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-              >
-                Logout
-              </Button>
+
+            {/* Mobile Logo - Centered */}
+            <div className="md:hidden flex-1 flex justify-center items-center gap-2">
+              <Trophy className="w-6 h-6 text-yellow-500" />
+              <h1 className="text-xl font-bold text-gray-900">
+                Bracket-IQ
+              </h1>
+            </div>
+
+            {/* Desktop User Dropdown */}
+            <div className="hidden md:flex items-center gap-4">
+              <UserDropdown email={email} handleLogout={handleLogout} />
+            </div>
+
+            {/* Mobile Hamburger Menu */}
+            <div className="md:hidden">
+              <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger className="inline-flex items-center justify-center h-10 w-10 rounded-md hover:bg-gray-100 transition-colors">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Toggle menu</span>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-3/4 sm:max-w-sm">
+                  <SheetHeader className="mb-6">
+                    <SheetTitle className="flex items-center gap-2 text-lg font-semibold">
+                      <Trophy className="w-6 h-6 text-yellow-500" />
+                      Bracket-IQ
+                    </SheetTitle>
+                  </SheetHeader>
+                  <div className="flex flex-col gap-6">
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setIsOpen(false)}
+                      className={current === "dashboard" ? "text-blue-600 font-medium text-lg" : "text-gray-600 text-lg hover:text-gray-900"}
+                    >
+                      My Predictions
+                    </Link>
+                    <Link
+                      href="/leaderboard"
+                      onClick={() => setIsOpen(false)}
+                      className={current === "leaderboard" ? "text-blue-600 font-medium text-lg" : "text-gray-600 text-lg hover:text-gray-900"}
+                    >
+                      Leaderboard
+                    </Link>
+                    <div className="pt-4 border-t">
+                      <UserDropdown email={email} handleLogout={handleLogout} />
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
         </div>
