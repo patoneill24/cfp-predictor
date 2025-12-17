@@ -32,6 +32,10 @@ function subscribe(callback: () => void) {
 export function Navbar({ current }: NavbarProps) {
   const router = useRouter();
   const email = useSyncExternalStore(subscribe, getEmailSnapshot, getServerSnapshot);
+  if (email === '' || email === null) {
+    // If no email is found, redirect to home
+    router.push('/');
+  }
   const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = async () => {
