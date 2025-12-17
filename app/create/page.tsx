@@ -33,24 +33,38 @@ function ChampionshipScoreModal({
 }: ChampionshipScoreModalProps) {
 
   const scoreSchema = z.object({
-    championScore: z.number().min(0, "Score must be a non-negative number"),
-    opponentScore: z.number().min(0, "Score must be a non-negative number"),
-  }).refine((data) => data.championScore !== data.opponentScore, {
+    championScore: z.string().refine((val) => val === '' || !isNaN(Number(val)), {
+      message: "Must be a valid number",
+    }).refine((val) => val === '' || Number(val) >= 0, {
+      message: "Score must be a non-negative number",
+    }),
+    opponentScore: z.string().refine((val) => val === '' || !isNaN(Number(val)), {
+      message: "Must be a valid number",
+    }).refine((val) => val === '' || Number(val) >= 0, {
+      message: "Score must be a non-negative number",
+    }),
+  }).refine((data) => {
+    if (data.championScore === '' || data.opponentScore === '') return true;
+    return Number(data.championScore) !== Number(data.opponentScore);
+  }, {
     message: "Scores cannot be tied",
     path: ["championScore"],
-  }).refine((data) => data.championScore > data.opponentScore, {
+  }).refine((data) => {
+    if (data.championScore === '' || data.opponentScore === '') return true;
+    return Number(data.championScore) > Number(data.opponentScore);
+  }, {
     message: `${champion.name} score must be higher than ${opponent.name} score`,
     path: ["championScore"],
   });
 
   const scoreForm = useForm<z.infer<typeof scoreSchema>>({
     resolver: zodResolver(scoreSchema),
-    defaultValues: { championScore: 0, opponentScore: 0 },
+    defaultValues: { championScore: '', opponentScore: '' },
     mode: 'onChange',
   })
 
-  const handleFormSubmit = (data: { championScore: number; opponentScore: number }) => {
-    onSubmit(data.championScore, data.opponentScore);
+  const handleFormSubmit = (data: z.infer<typeof scoreSchema>) => {
+    onSubmit(Number(data.championScore), Number(data.opponentScore));
   };
 
   return (
@@ -84,8 +98,7 @@ function ChampionshipScoreModal({
                     pattern="[0-9]*"
                     value={field.value}
                     onChange={(e) => {
-                      const value = e.target.value === '' ? 0 : Number(e.target.value);
-                      field.onChange(value);
+                      field.onChange(e.target.value);
                     }}
                     onBlur={field.onBlur}
                     name={field.name}
@@ -113,8 +126,7 @@ function ChampionshipScoreModal({
                     pattern="[0-9]*"
                     value={field.value}
                     onChange={(e) => {
-                      const value = e.target.value === '' ? 0 : Number(e.target.value);
-                      field.onChange(value);
+                      field.onChange(e.target.value);
                     }}
                     onBlur={field.onBlur}
                     name={field.name}

@@ -188,11 +188,11 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
                     Predicted Final Score:
                   </div>
                   <div className="text-sm font-semibold text-gray-900">
-                    {prediction.bracket.championship.team1}:{' '}
+                    {prediction.bracket.championship.prediction}:{' '}
                     {prediction.bracket.championship.predictedScore.team1Score}
                   </div>
                   <div className="text-sm font-semibold text-gray-900">
-                    {prediction.bracket.championship.team2}:{' '}
+                    {prediction.bracket.championship.team2 === prediction.bracket.championship.prediction ? prediction.bracket.championship.team1 : prediction.bracket.championship.team2}:{' '}
                     {prediction.bracket.championship.predictedScore.team2Score}
                   </div>
                 </div>
