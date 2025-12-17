@@ -6,8 +6,11 @@ if (!process.env.CONNECTION_STRING) {
 
 const uri = process.env.CONNECTION_STRING;
 const options = {
-  retryWrites: true,
-  w: 'majority' as const,
+  serverSelectionTimeoutMS: 10000,
+  socketTimeoutMS: 45000,
+  maxPoolSize: 10, // Maximum number of connections in the pool
+  minPoolSize: 1,  // Minimum number of connections in the pool
+  maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
 };
 
 let client: MongoClient;
