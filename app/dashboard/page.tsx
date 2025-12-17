@@ -25,7 +25,7 @@ export default function DashboardPage() {
   const [predictionNames, setPredictionNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [predictionToDelete, setPredictionToDelete] = useState<{ id: string; number: number } | null>(null);
+  const [predictionToDelete, setPredictionToDelete] = useState<{ id: string; name: string } | null>(null);
   const [nameModalOpen, setNameModalOpen] = useState(false);
   const router = useRouter();
 
@@ -64,8 +64,8 @@ export default function DashboardPage() {
     }
   };
 
-  const handleDeleteClick = (id: string, number: number) => {
-    setPredictionToDelete({ id, number });
+  const handleDeleteClick = (id: string, name: string) => {
+    setPredictionToDelete({ id, name });
     setDeleteDialogOpen(true);
   };
 
@@ -189,7 +189,7 @@ export default function DashboardPage() {
                     View Details
                   </Link>
                   <button
-                    onClick={() => handleDeleteClick(prediction._id, predictions.length - index)}
+                    onClick={() => handleDeleteClick(prediction._id, prediction.name)}
                     className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium text-sm"
                   >
                     Delete
@@ -205,7 +205,7 @@ export default function DashboardPage() {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleDeleteConfirm}
-        predictionNumber={predictionToDelete?.number}
+        predictionName={predictionToDelete?.name}
       />
 
       <NamePredictionModal
