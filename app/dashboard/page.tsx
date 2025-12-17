@@ -122,7 +122,7 @@ export default function DashboardPage() {
               </button>
             </TooltipTrigger>
             
-            {predictions.length >=1 && (
+            {predictions.length >=5 && (
               <TooltipContent>
                 You have reached the maximum of 5 predictions.
               </TooltipContent>
