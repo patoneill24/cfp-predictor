@@ -74,51 +74,101 @@ export function BracketPredictor({ onSave, readOnly = false, name }: BracketPred
     winner: null,
   })
 
+  // Helper function to remove a team from a matchup
+  const clearTeamFromMatchup = (matchup: Matchup, teamId: string): Matchup => {
+    const newMatchup = { ...matchup }
+    if (matchup.team1?.id === teamId) newMatchup.team1 = null
+    if (matchup.team2?.id === teamId) newMatchup.team2 = null
+    if (matchup.winner?.id === teamId) newMatchup.winner = null
+    return newMatchup
+  }
+
   const handleFirstRoundWinner = (matchupId: string, winner: Team) => {
+    const matchup = firstRound.find((m) => m.id === matchupId)
+    if (!matchup) return
+
+    // Determine which team was eliminated (the loser)
+    const eliminatedTeam = matchup.team1?.id === winner.id ? matchup.team2 : matchup.team1
+
     const updatedFirstRound = firstRound.map((m) => (m.id === matchupId ? { ...m, winner } : m))
     setFirstRound(updatedFirstRound)
 
-    const updatedQuarterfinals = [...quarterfinals]
-    if (matchupId === "fr1") {
-      updatedQuarterfinals[0] = { ...updatedQuarterfinals[0], team2: winner }
-    } else if (matchupId === "fr2") {
-      updatedQuarterfinals[1] = { ...updatedQuarterfinals[1], team2: winner }
-    } else if (matchupId === "fr3") {
-      updatedQuarterfinals[2] = { ...updatedQuarterfinals[2], team2: winner }
-    } else if (matchupId === "fr4") {
-      updatedQuarterfinals[3] = { ...updatedQuarterfinals[3], team2: winner }
+    // Update quarterfinals: clear eliminated team AND advance winner in a single update
+    setQuarterfinals((prev) => {
+      const updated = eliminatedTeam ? prev.map((m) => clearTeamFromMatchup(m, eliminatedTeam.id)) : [...prev]
+
+      if (matchupId === "fr1") {
+        updated[0] = { ...updated[0], team2: winner }
+      } else if (matchupId === "fr2") {
+        updated[1] = { ...updated[1], team2: winner }
+      } else if (matchupId === "fr3") {
+        updated[2] = { ...updated[2], team2: winner }
+      } else if (matchupId === "fr4") {
+        updated[3] = { ...updated[3], team2: winner }
+      }
+      return updated
+    })
+
+    // Remove the eliminated team from semifinals and championship
+    if (eliminatedTeam) {
+      setSemifinals((prev) => prev.map((m) => clearTeamFromMatchup(m, eliminatedTeam.id)))
+      setChampionship((prev) => clearTeamFromMatchup(prev, eliminatedTeam.id))
     }
-    setQuarterfinals(updatedQuarterfinals)
   }
 
   const handleQuarterfinalWinner = (matchupId: string, winner: Team) => {
+    const matchup = quarterfinals.find((m) => m.id === matchupId)
+    if (!matchup) return
+
+    // Determine which team was eliminated (the loser)
+    const eliminatedTeam = matchup.team1?.id === winner.id ? matchup.team2 : matchup.team1
+
     const updatedQuarterfinals = quarterfinals.map((m) => (m.id === matchupId ? { ...m, winner } : m))
     setQuarterfinals(updatedQuarterfinals)
 
-    const updatedSemifinals = [...semifinals]
-    if (matchupId === "qf1") {
-      updatedSemifinals[0] = { ...updatedSemifinals[0], team1: winner }
-    } else if (matchupId === "qf2") {
-      updatedSemifinals[0] = { ...updatedSemifinals[0], team2: winner }
-    } else if (matchupId === "qf3") {
-      updatedSemifinals[1] = { ...updatedSemifinals[1], team1: winner }
-    } else if (matchupId === "qf4") {
-      updatedSemifinals[1] = { ...updatedSemifinals[1], team2: winner }
+    // Update semifinals: clear eliminated team AND advance winner in a single update
+    setSemifinals((prev) => {
+      const updated = eliminatedTeam ? prev.map((m) => clearTeamFromMatchup(m, eliminatedTeam.id)) : [...prev]
+
+      if (matchupId === "qf1") {
+        updated[0] = { ...updated[0], team1: winner }
+      } else if (matchupId === "qf2") {
+        updated[0] = { ...updated[0], team2: winner }
+      } else if (matchupId === "qf3") {
+        updated[1] = { ...updated[1], team1: winner }
+      } else if (matchupId === "qf4") {
+        updated[1] = { ...updated[1], team2: winner }
+      }
+      return updated
+    })
+
+    // Remove the eliminated team from championship
+    if (eliminatedTeam) {
+      setChampionship((prev) => clearTeamFromMatchup(prev, eliminatedTeam.id))
     }
-    setSemifinals(updatedSemifinals)
   }
 
   const handleSemifinalWinner = (matchupId: string, winner: Team) => {
+    const matchup = semifinals.find((m) => m.id === matchupId)
+    if (!matchup) return
+
+    // Determine which team was eliminated (the loser)
+    const eliminatedTeam = matchup.team1?.id === winner.id ? matchup.team2 : matchup.team1
+
     const updatedSemifinals = semifinals.map((m) => (m.id === matchupId ? { ...m, winner } : m))
     setSemifinals(updatedSemifinals)
 
-    const updatedChampionship = { ...championship }
-    if (matchupId === "sf1") {
-      updatedChampionship.team1 = winner
-    } else if (matchupId === "sf2") {
-      updatedChampionship.team2 = winner
-    }
-    setChampionship(updatedChampionship)
+    // Update championship: clear eliminated team AND advance winner in a single update
+    setChampionship((prev) => {
+      const updated = eliminatedTeam ? clearTeamFromMatchup(prev, eliminatedTeam.id) : { ...prev }
+
+      if (matchupId === "sf1") {
+        updated.team1 = winner
+      } else if (matchupId === "sf2") {
+        updated.team2 = winner
+      }
+      return updated
+    })
   }
 
   const handleChampionshipWinner = (winner: Team) => {
