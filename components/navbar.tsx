@@ -1,20 +1,37 @@
+"use client";
 import { Trophy } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
+import { useSyncExternalStore } from "react";
 
 interface NavbarProps {
   current: string;
 }
 
+function getEmailSnapshot() {
+  return sessionStorage.getItem('userEmail') || '';
+}
+
+function getServerSnapshot() {
+  return '';
+}
+
+function subscribe(callback: () => void) {
+  window.addEventListener('storage', callback);
+  return () => window.removeEventListener('storage', callback);
+}
+
 export function Navbar({ current }: NavbarProps) {
-  const email = sessionStorage.getItem('userEmail') || '';
   const router = useRouter();
+  const email = useSyncExternalStore(subscribe, getEmailSnapshot, getServerSnapshot);
+
   const handleLogout = async () => {
     sessionStorage.removeItem('userEmail');
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/');
   };
+
     return(
       <nav className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
