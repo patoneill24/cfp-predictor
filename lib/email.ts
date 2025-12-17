@@ -5,15 +5,10 @@ export async function sendOTPEmail(email: string, code: string) {
     throw new Error('RESEND_API_KEY is not set in environment variables');
   }
   const resend = new Resend(process.env.RESEND_API_KEY);
-  console.log(`\n=== OTP EMAIL ===`);
-  console.log(`To: ${email}`);
-  console.log(`Code: ${code}`);
-  console.log(`Expires: 10 minutes`);
-  console.log(`=================\n`);
 
   await resend.emails.send({
     from: 'Bracket-IQ <otp@mail.bracket-iq.app>',
-    to: ['delivered@resend.dev','bounced@resend.dev','complained@resend.dev'],
+    to: email,
     subject: 'Your Login Code',
     html: `
 <!DOCTYPE html>
@@ -90,7 +85,7 @@ export async function sendWelcomeEmail(email: string) {
   const fiveMinutesFromNow = new Date(Date.now() + 1000 * 60 * 5).toISOString();
   await resend.emails.send({
     from: 'Bracket-IQ <welcome@mail.bracket-iq.app>',
-    to: ['delivered@resend.dev','bounced@resend.dev','complained@resend.dev'],
+    to: email,
     subject: 'Welcome to Bracket-IQ!',
     html: `
 <!DOCTYPE html>
@@ -178,9 +173,5 @@ export async function sendWelcomeEmail(email: string) {
     `,
     scheduledAt: fiveMinutesFromNow,
   });
-  console.log(`\n=== WELCOME EMAIL ===`);
-  console.log(`To: ${email}`);
-  console.log(`Subject: Welcome to CFB Playoff Predictions!`);
-  console.log(`=====================\n`);
   return true;
 }
