@@ -138,7 +138,7 @@ function ChampionshipScoreModal({
               type="submit"
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Save Prediction
+              Create Prediction
             </button>
           </div>
         </form>
@@ -260,14 +260,12 @@ export default function CreatePage() {
         </div>
       </nav>
 
-      <div className="overflow-x-auto">
-        <BracketPredictor onSave={(data) => {
-          setBracketData(data);
-          if (data.championship.winner) {
-            setShowModal(true);
-          }
-        }} />
-      </div>
+      <BracketPredictor name={predictionName} onSave={(data) => {
+        setBracketData(data);
+        if (data.championship.winner) {
+          setShowModal(true);
+        }
+      }} />
 
       {showModal && bracketData?.championship?.winner && (
         <ChampionshipScoreModal

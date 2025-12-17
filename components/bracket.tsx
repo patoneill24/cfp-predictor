@@ -44,9 +44,10 @@ interface BracketData {
 interface BracketPredictorProps {
   onSave?: (data: BracketData) => void
   readOnly?: boolean
+  name?: string
 }
 
-export function BracketPredictor({ onSave, readOnly = false }: BracketPredictorProps = {}) {
+export function BracketPredictor({ onSave, readOnly = false, name }: BracketPredictorProps = {}) {
   const [firstRound, setFirstRound] = useState<Matchup[]>([
     { id: "fr1", team1: initialTeams[11], team2: initialTeams[4], winner: null }, // 7 vs 10
     { id: "fr2", team1: initialTeams[8], team2: initialTeams[7], winner: null }, // 2 vs 11
@@ -161,7 +162,7 @@ export function BracketPredictor({ onSave, readOnly = false }: BracketPredictorP
     <div className="container mx-auto px-4 py-8 md:py-12">
       <div className="mb-8 flex flex-col items-center justify-between gap-4 md:flex-row">
         <div className="text-center md:text-left">
-          <h1 className="mb-2 text-4xl font-bold text-balance md:text-5xl">College Football Playoff Predictor</h1>
+          <h1 className="mb-2 text-4xl font-bold text-balance md:text-5xl">{name}</h1>
           <p className="text-lg text-muted-foreground">
             {readOnly ? "View bracket predictions" : "Click on teams to predict the winners and build your bracket"}
           </p>
@@ -181,7 +182,7 @@ export function BracketPredictor({ onSave, readOnly = false }: BracketPredictorP
                   className="gap-2"
                 >
                   <Trophy className="h-4 w-4" />
-                  Save Prediction
+                  Create Prediction
                 </Button>
               )}
             </>
@@ -189,8 +190,8 @@ export function BracketPredictor({ onSave, readOnly = false }: BracketPredictorP
         </div>
       </div>
 
-      <div className="">
-        <div className="flex min-w-max gap-6 md:gap-8">
+      <div>
+        <div className="flex gap-6 md:gap-8">
           {/* First Round */}
           <div className="flex flex-col gap-4">
             <h2 className="mb-2 text-center text-xl font-bold">First Round</h2>

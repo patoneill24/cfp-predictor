@@ -52,11 +52,7 @@ export default function DashboardPage() {
       }
       if (namesRes.ok) {
         const namesData = await namesRes.json();
-        console.log('Fetched prediction names response:', namesData);
         setPredictionNames(namesData.predictions.map((p: {_id:string, name:string}) => p.name));
-        console.log('Fetched prediction names:', namesData.predictions.map((p: {_id:string, name:string}) => p.name));
-      }else{
-        console.error('Failed to fetch prediction names');
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -87,7 +83,7 @@ export default function DashboardPage() {
   };
 
   const handleNameSubmit = (name: string) => {
-    const existingNames = predictionNames.map((p) => p.toLowerCase());
+    const existingNames = predictionNames.map((p) => p.toLowerCase()) ?? [];
     if (existingNames.includes(name.toLowerCase())) {
       alert('There is already a prediction with that name. Please choose a different name.');
       return;
