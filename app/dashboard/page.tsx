@@ -46,6 +46,9 @@ export default function DashboardPage() {
         return;
       }
 
+      const userData = await userRes.json();
+      sessionStorage.setItem('userEmail', userData.user.email);
+
       if (predictionsRes.ok) {
         const predictionsData = await predictionsRes.json();
         setPredictions(predictionsData.predictions);

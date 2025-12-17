@@ -11,6 +11,7 @@ export function Navbar({ current }: NavbarProps) {
   const email = sessionStorage.getItem('userEmail') || '';
   const router = useRouter();
   const handleLogout = async () => {
+    sessionStorage.removeItem('userEmail');
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/');
   };

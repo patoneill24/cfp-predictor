@@ -42,6 +42,8 @@ export default function LeaderboardPage() {
         router.push('/');
         return;
       }
+      const userData = await userRes.json();
+      sessionStorage.setItem('userEmail', userData.user.email);
 
       if (leaderboardRes.ok) {
         const data = await leaderboardRes.json();
