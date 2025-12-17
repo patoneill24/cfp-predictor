@@ -5,7 +5,10 @@ if (!process.env.CONNECTION_STRING) {
 }
 
 const uri = process.env.CONNECTION_STRING;
-const options = {};
+const options = {
+  retryWrites: true,
+  w: 'majority' as const,
+};
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
