@@ -107,7 +107,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar current="dashboard" />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8 flex justify-between items-center">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
           <div>
             <h2 className="text-3xl font-bold text-gray-900">My Predictions</h2>
             <p className="text-gray-600 mt-1">

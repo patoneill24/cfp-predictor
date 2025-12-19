@@ -104,13 +104,13 @@ function VerifyContent() {
               value={code}
               onChange={(value) => setCode(value)}
             >
-              <InputOTPGroup className="gap-2">
-                <InputOTPSlot index={0} className="w-14 h-16 text-2xl border-2 border-gray-300 rounded-lg" />
-                <InputOTPSlot index={1} className="w-14 h-16 text-2xl border-2 border-gray-300 rounded-lg" />
-                <InputOTPSlot index={2} className="w-14 h-16 text-2xl border-2 border-gray-300 rounded-lg" />
-                <InputOTPSlot index={3} className="w-14 h-16 text-2xl border-2 border-gray-300 rounded-lg" />
-                <InputOTPSlot index={4} className="w-14 h-16 text-2xl border-2 border-gray-300 rounded-lg" />
-                <InputOTPSlot index={5} className="w-14 h-16 text-2xl border-2 border-gray-300 rounded-lg" />
+              <InputOTPGroup className="gap-1 sm:gap-2">
+                <InputOTPSlot index={0} className="w-10 h-12 sm:w-14 sm:h-16 text-xl sm:text-2xl border-2 border-gray-300 rounded-lg" />
+                <InputOTPSlot index={1} className="w-10 h-12 sm:w-14 sm:h-16 text-xl sm:text-2xl border-2 border-gray-300 rounded-lg" />
+                <InputOTPSlot index={2} className="w-10 h-12 sm:w-14 sm:h-16 text-xl sm:text-2xl border-2 border-gray-300 rounded-lg" />
+                <InputOTPSlot index={3} className="w-10 h-12 sm:w-14 sm:h-16 text-xl sm:text-2xl border-2 border-gray-300 rounded-lg" />
+                <InputOTPSlot index={4} className="w-10 h-12 sm:w-14 sm:h-16 text-xl sm:text-2xl border-2 border-gray-300 rounded-lg" />
+                <InputOTPSlot index={5} className="w-10 h-12 sm:w-14 sm:h-16 text-xl sm:text-2xl border-2 border-gray-300 rounded-lg" />
               </InputOTPGroup>
             </InputOTP>
           </div>
