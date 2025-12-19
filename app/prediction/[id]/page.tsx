@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
+import { Check } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface Prediction {
   _id: string;
@@ -27,8 +29,22 @@ interface Prediction {
   };
 }
 
+interface results {
+  _id: string;
+  gameId: string;
+  team1: string;
+  team2: string;
+  team1Score: number;
+  team2Score: number;
+  winner: string;
+  completed: boolean;
+  gameDate: string;
+  lastUpdated: string;
+}
+
 export default function PredictionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [prediction, setPrediction] = useState<Prediction | null>(null);
+  const [results, setResults] = useState<results[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const [id, setId] = useState<string>('');
@@ -42,8 +58,23 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
   useEffect(() => {
     if (id) {
       fetchPrediction();
+      fetchResults();
     }
   }, [id]);
+
+  const fetchResults = async () => {
+    try {
+      const response = await fetch('/api/results');
+      if (!response.ok) {
+        throw new Error('Failed to fetch results');
+      }
+      const data = await response.json();
+      setResults(data.results);
+      // Handle the results data as needed
+    } catch (error) {
+      console.error('Error fetching results:', error);
+    }
+  };
 
   const fetchPrediction = async () => {
     try {
@@ -74,6 +105,30 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
   if (!prediction) {
     return null;
   }
+
+  const getPredictionResults = (gameId: string, prediction: string) => {
+    if (prediction) {
+      const result = results.find((r) => r.gameId === gameId);
+      if (!result || !result.completed) {
+        return 'Not Played Yet';
+      }
+      if (result.winner === prediction) {
+        return 'Correct';
+      }
+      return 'Incorrect';
+    }
+  };
+
+  const getOutlineClass = (gameId: string, prediction: string) => {
+    const result = results.find((r) => r.gameId === gameId);
+    if (!result || !result.completed) {
+      return ''; // No outline if game hasn't been played
+    }
+    if (result.winner === prediction) {
+      return 'ring-2 ring-green-500'; // Green outline for correct prediction
+    }
+    return 'ring-2 ring-red-500'; // Red outline for incorrect prediction
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -107,15 +162,26 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
                 {prediction.bracket.firstRound.map((game, index) => (
                   <div
                     key={game.gameId}
-                    className="p-3 bg-gray-50 rounded-lg"
+                    className={`p-3 bg-gray-50 rounded-lg ${getOutlineClass(game.gameId, game.prediction)}`}
                   >
                     <div className="text-xs text-gray-500 mb-1">
                       Game {index + 1}
                     </div>
-                    <div className="text-sm text-gray-700">
-                      {game.team1} vs {game.team2}
+                    <div className='flex items-center justify-between'>
+                      <div className="text-sm text-gray-700">
+                        {game.team1} vs {game.team2}
+                      </div>
+                      <div>
+                        {getPredictionResults(game.gameId, game.prediction) === 'Correct' ? (
+                          <Check size={24} className="text-green-500" />
+                        ) : getPredictionResults(game.gameId, game.prediction) === 'Incorrect' ? (
+                          <X size={25} className="text-red-500" />
+                        ) : (
+                          <span className="text-gray-500">Not Played Yet</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-sm font-semibold text-gray-900 mt-1">
+                    <div className="text-sm font-semibold mt-1 text-gray-900">
                       Winner: {game.prediction}
                     </div>
                   </div>
@@ -131,13 +197,24 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
                 {prediction.bracket.quarterfinals.map((game, index) => (
                   <div
                     key={game.gameId}
-                    className="p-3 bg-gray-50 rounded-lg"
+                    className={`p-3 bg-gray-50 rounded-lg ${getOutlineClass(game.gameId, game.prediction)}`}
                   >
                     <div className="text-xs text-gray-500 mb-1">
                       Game {index + 1}
                     </div>
-                    <div className="text-sm text-gray-700">
-                      {game.team1} vs {game.team2}
+                    <div className='flex items-center justify-between'>
+                      <div className="text-sm text-gray-700">
+                        {game.team1} vs {game.team2}
+                      </div>
+                      <div>
+                        {getPredictionResults(game.gameId, game.prediction) === 'Correct' ? (
+                          <Check size={32} className="text-green-500" />
+                        ) : getPredictionResults(game.gameId, game.prediction) === 'Incorrect' ? (
+                          <X className="text-red-500" />
+                        ) : (
+                          <span className="text-gray-500">Not Played Yet</span>
+                        )}
+                      </div>
                     </div>
                     <div className="text-sm font-semibold text-gray-900 mt-1">
                       Winner: {game.prediction}
@@ -155,13 +232,24 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
                 {prediction.bracket.semifinals.map((game, index) => (
                   <div
                     key={game.gameId}
-                    className="p-3 bg-gray-50 rounded-lg"
+                    className={`p-3 bg-gray-50 rounded-lg ${getOutlineClass(game.gameId, game.prediction)}`}
                   >
                     <div className="text-xs text-gray-500 mb-1">
                       Game {index + 1}
                     </div>
-                    <div className="text-sm text-gray-700">
-                      {game.team1} vs {game.team2}
+                    <div className='flex items-center justify-between'>
+                      <div className="text-sm text-gray-700">
+                        {game.team1} vs {game.team2}
+                      </div>
+                      <div>
+                        {getPredictionResults(game.gameId, game.prediction) === 'Correct' ? (
+                          <Check size={32} className="text-green-500" />
+                        ) : getPredictionResults(game.gameId, game.prediction) === 'Incorrect' ? (
+                          <X className="text-red-500" />
+                        ) : (
+                          <span className="text-gray-500">Not Played Yet</span>
+                        )}
+                      </div>
                     </div>
                     <div className="text-sm font-semibold text-gray-900 mt-1">
                       Winner: {game.prediction}
@@ -175,10 +263,21 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
               <h3 className="text-lg font-semibold text-gray-900 mb-3">
                 Championship
               </h3>
-              <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-                <div className="text-sm text-gray-700 mb-2">
-                  {prediction.bracket.championship.team1} vs{' '}
-                  {prediction.bracket.championship.team2}
+              <div className={`p-4 h-48 bg-blue-50 rounded-lg border-2 border-blue-200 ${getOutlineClass(prediction.bracket.championship.gameId, prediction.bracket.championship.prediction)}`}>
+                <div className='flex items-center justify-between'>
+                  <div className="text-sm text-gray-700 mb-2">
+                    {prediction.bracket.championship.team1} vs{' '}
+                    {prediction.bracket.championship.team2}
+                  </div>
+                  <div>
+                    {getPredictionResults(prediction.bracket.championship.gameId, prediction.bracket.championship.prediction) === 'Correct' ? (
+                      <Check size={32} className="text-green-500" />
+                    ) : getPredictionResults(prediction.bracket.championship.gameId, prediction.bracket.championship.prediction) === 'Incorrect' ? (
+                      <X className="text-red-500" />
+                    ) : (
+                      <span className="text-gray-500">Not Played Yet</span>
+                    )}
+                  </div>
                 </div>
                 <div className="text-lg font-bold text-gray-900 mb-3">
                   Winner: {prediction.bracket.championship.prediction}
