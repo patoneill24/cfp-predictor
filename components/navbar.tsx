@@ -2,7 +2,7 @@
 import { Trophy, Menu } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSyncExternalStore, useState } from "react";
+import { useSyncExternalStore, useState, useEffect } from "react";
 import { UserDropdown } from "./user-dropdown";
 import {
   Sheet,
@@ -32,11 +32,14 @@ function subscribe(callback: () => void) {
 export function Navbar({ current }: NavbarProps) {
   const router = useRouter();
   const email = useSyncExternalStore(subscribe, getEmailSnapshot, getServerSnapshot);
-  if (email === '' || email === null) {
-    // If no email is found, redirect to home
-    router.push('/');
-  }
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (email === '' || email === null) {
+      // If no email is found, redirect to home
+      router.push('/');
+    }
+  }, [email, router]);
 
   const handleLogout = async () => {
     sessionStorage.removeItem('userEmail');
