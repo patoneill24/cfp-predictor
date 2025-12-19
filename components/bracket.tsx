@@ -49,17 +49,17 @@ interface BracketPredictorProps {
 
 export function BracketPredictor({ onSave, readOnly = false, name }: BracketPredictorProps = {}) {
   const [firstRound, setFirstRound] = useState<Matchup[]>([
-    { id: "fr1", team1: initialTeams[11], team2: initialTeams[4], winner: null }, // 7 vs 10
-    { id: "fr2", team1: initialTeams[8], team2: initialTeams[7], winner: null }, // 2 vs 11
-    { id: "fr3", team1: initialTeams[10], team2: initialTeams[5], winner: null }, // 3 vs 12
-    { id: "fr4", team1: initialTeams[9], team2: initialTeams[6], winner: null }, // 6 vs 9
+    { id: "fr1", team1: initialTeams[11], team2: initialTeams[4], winner: null }, // 12 vs 5
+    { id: "fr2", team1: initialTeams[8], team2: initialTeams[7], winner: null }, // 9 vs 8
+    { id: "fr3", team1: initialTeams[10], team2: initialTeams[5], winner: null }, // 11 vs 6
+    { id: "fr4", team1: initialTeams[9], team2: initialTeams[6], winner: null }, // 7 vs 10
   ])
 
   const [quarterfinals, setQuarterfinals] = useState<Matchup[]>([
-    { id: "qf1", team1: initialTeams[3], team2: null, winner: null }, // 1 vs winner of FR1
-    { id: "qf2", team1: initialTeams[0], team2: null, winner: null }, // 8 vs winner of FR2
-    { id: "qf3", team1: initialTeams[2], team2: null, winner: null }, // 5 vs winner of FR3
-    { id: "qf4", team1: initialTeams[1], team2: null, winner: null }, // 4 vs winner of FR4
+    { id: "qf1", team1: initialTeams[3], team2: null, winner: null }, // 4 vs winner of FR1
+    { id: "qf2", team1: initialTeams[0], team2: null, winner: null }, // 1 vs winner of FR2
+    { id: "qf3", team1: initialTeams[2], team2: null, winner: null }, // 3 vs winner of FR3
+    { id: "qf4", team1: initialTeams[1], team2: null, winner: null }, // 2 vs winner of FR4
   ])
 
   const [semifinals, setSemifinals] = useState<Matchup[]>([
@@ -190,22 +190,27 @@ export function BracketPredictor({ onSave, readOnly = false, name }: BracketPred
 
   const resetBracket = () => {
     setFirstRound([
-      { id: "fr1", team1: initialTeams[6], team2: initialTeams[9], winner: null },
-      { id: "fr2", team1: initialTeams[1], team2: initialTeams[10], winner: null },
-      { id: "fr3", team1: initialTeams[2], team2: initialTeams[11], winner: null },
-      { id: "fr4", team1: initialTeams[5], team2: initialTeams[8], winner: null },
+    { id: "fr1", team1: initialTeams[11], team2: initialTeams[4], winner: null }, // 12 vs 5
+    { id: "fr2", team1: initialTeams[8], team2: initialTeams[7], winner: null }, // 9 vs 8
+    { id: "fr3", team1: initialTeams[10], team2: initialTeams[5], winner: null }, // 11 vs 6
+    { id: "fr4", team1: initialTeams[9], team2: initialTeams[6], winner: null }, // 7 vs 10
     ])
     setQuarterfinals([
-      { id: "qf1", team1: initialTeams[0], team2: null, winner: null },
-      { id: "qf2", team1: initialTeams[7], team2: null, winner: null },
-      { id: "qf3", team1: initialTeams[4], team2: null, winner: null },
-      { id: "qf4", team1: initialTeams[3], team2: null, winner: null },
+    { id: "qf1", team1: initialTeams[3], team2: null, winner: null }, // 4 vs winner of FR1
+    { id: "qf2", team1: initialTeams[0], team2: null, winner: null }, // 1 vs winner of FR2
+    { id: "qf3", team1: initialTeams[2], team2: null, winner: null }, // 3 vs winner of FR3
+    { id: "qf4", team1: initialTeams[1], team2: null, winner: null }, // 2 vs winner of FR4
     ])
     setSemifinals([
-      { id: "sf1", team1: null, team2: null, winner: null },
-      { id: "sf2", team1: null, team2: null, winner: null },
+    { id: "sf1", team1: null, team2: null, winner: null },
+    { id: "sf2", team1: null, team2: null, winner: null },
     ])
-    setChampionship({ id: "final", team1: null, team2: null, winner: null })
+    setChampionship({
+    id: "final",
+    team1: null,
+    team2: null,
+    winner: null,
+    })
   }
 
   return (
