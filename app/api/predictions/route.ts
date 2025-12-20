@@ -32,65 +32,67 @@ export async function GET() {
 
 // POST create a new prediction
 export async function POST(request: NextRequest) {
-  try {
-    const session = await verifySession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  return NextResponse.json({ error: 'Playoffs have started, creating new predictions is disabled.' }, { status: 503 });
+  // try {
+  //   return NextResponse.json({ error: 'Playoffs have started, creating new predictions is disabled.' }, { status: 503 });
+  //   const session = await verifySession();
+  //   if (!session) {
+  //     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  //   }
 
-    const { bracket, name } = await request.json();
+  //   const { bracket, name } = await request.json();
 
-    if (!bracket) {
-      return NextResponse.json(
-        { error: 'Bracket data is required' },
-        { status: 400 }
-      );
-    }
+  //   if (!bracket) {
+  //     return NextResponse.json(
+  //       { error: 'Bracket data is required' },
+  //       { status: 400 }
+  //     );
+  //   }
 
-    if (!name || typeof name !== 'string' || !name.trim()) {
-      return NextResponse.json(
-        { error: 'Prediction name is required' },
-        { status: 400 }
-      );
-    }
+  //   if (!name || typeof name !== 'string' || !name.trim()) {
+  //     return NextResponse.json(
+  //       { error: 'Prediction name is required' },
+  //       { status: 400 }
+  //     );
+  //   }
 
-    // Validate bracket structure
-    if (
-      !bracket.firstRound ||
-      !bracket.quarterfinals ||
-      !bracket.semifinals ||
-      !bracket.championship
-    ) {
-      return NextResponse.json(
-        { error: 'Invalid bracket structure' },
-        { status: 400 }
-      );
-    }
+  //   // Validate bracket structure
+  //   if (
+  //     !bracket.firstRound ||
+  //     !bracket.quarterfinals ||
+  //     !bracket.semifinals ||
+  //     !bracket.championship
+  //   ) {
+  //     return NextResponse.json(
+  //       { error: 'Invalid bracket structure' },
+  //       { status: 400 }
+  //     );
+  //   }
 
-    const db = await getDatabase();
-    const predictionsCollection = db.collection<Prediction>('predictions');
+  //   const db = await getDatabase();
+  //   const predictionsCollection = db.collection<Prediction>('predictions');
 
-    const prediction: Prediction = {
-      userId: new ObjectId(session.userId),
-      userName: session.email,
-      name: name.trim(),
-      bracket,
-      score: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+  //   const prediction: Prediction = {
+  //     userId: new ObjectId(session.userId),
+  //     userName: session.email,
+  //     name: name.trim(),
+  //     bracket,
+  //     score: 0,
+  //     createdAt: new Date(),
+  //     updatedAt: new Date(),
+  //   };
 
-    const result = await predictionsCollection.insertOne(prediction);
+  //   const result = await predictionsCollection.insertOne(prediction);
 
-    return NextResponse.json({
-      success: true,
-      predictionId: result.insertedId.toString(),
-    });
-  } catch (error) {
-    console.error('Create prediction error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  //   return NextResponse.json({
+  //     success: true,
+  //     predictionId: result.insertedId.toString(),
+  //   });
+  // } catch (error) {
+  //   console.error('Create prediction error:', error);
+  //   return NextResponse.json(
+  //     { error: 'Internal server error' },
+  //     { status: 500 }
+  //   );
+  // }
 }

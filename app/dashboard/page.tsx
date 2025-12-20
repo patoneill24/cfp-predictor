@@ -119,7 +119,7 @@ export default function DashboardPage() {
               <button
                 onClick={() => setNameModalOpen(true)}
                 className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={predictions.length >= 5}
+                disabled={true}
               >
                 Create New Prediction
               </button>
@@ -144,6 +144,7 @@ export default function DashboardPage() {
             <button
               onClick={() => setNameModalOpen(true)}
               className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              disabled={true}
             >
               Create Prediction
             </button>
