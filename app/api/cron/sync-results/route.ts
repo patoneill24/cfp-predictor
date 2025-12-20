@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/mongodb';
-import { GameResult } from '@/lib/models/gameResult';
+import { GameResult, GameRound } from '@/lib/models/gameResult';
 import { Prediction } from '@/lib/models/prediction';
 import { fetchPlayoffGames, mapCFBGameToResult } from '@/lib/cfbApi';
 import { calculateScore } from '@/lib/scoring';
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const resultsCollection = db.collection<GameResult>('gameResults');
     const predictionsCollection = db.collection<Prediction>('predictions');
 
-    // Fetch current year playoff games
+    // // Fetch current year playoff games
     const currentYear = new Date().getFullYear();
     const games = await fetchPlayoffGames(currentYear);
 
@@ -28,11 +28,19 @@ export async function POST(request: NextRequest) {
     // Update or insert game results
     let updatedCount = 0;
     for (const game of games) {
-      // Determine round based on game characteristics (this is simplified - adjust based on actual data)
-      let round = 'firstRound';
-      // You would need logic here to determine the actual round based on game data
+      let round: GameRound = 'firstRound';
+      switch(true) {
+        case game.notes?.includes('Semifinal'):
+          round = 'semifinals';
+          break;
+        case game.notes?.includes('Championship'):
+          round = 'championship';
+          break;
+        default:
+          round = 'firstRound';
+      }
 
-      const gameResult = mapCFBGameToResult(game, round);
+      const gameResult = await mapCFBGameToResult(game, round);
 
       await resultsCollection.updateOne(
         { gameId: gameResult.gameId },
@@ -50,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     let scoresUpdated = 0;
     for (const prediction of predictions) {
-      const newScore = calculateScore(prediction.bracket, allResults);
+      const newScore = calculateScore(prediction.bracket,allResults);
 
       if (newScore !== prediction.score) {
         await predictionsCollection.updateOne(
@@ -70,7 +78,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      gamesUpdated: updatedCount,
       scoresUpdated,
     });
   } catch (error) {

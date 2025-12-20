@@ -63,8 +63,8 @@ export function BracketPredictor({ onSave, readOnly = false, name }: BracketPred
   ])
 
   const [semifinals, setSemifinals] = useState<Matchup[]>([
-    { id: "sf1", team1: null, team2: null, winner: null },
-    { id: "sf2", team1: null, team2: null, winner: null },
+    { id: "sf1", team1: null, team2: null, winner: null }, // winner of QF1 vs winner of QF2
+    { id: "sf2", team1: null, team2: null, winner: null }, // winner of QF3 vs winner of QF4
   ])
 
   const [championship, setChampionship] = useState<Matchup>({
