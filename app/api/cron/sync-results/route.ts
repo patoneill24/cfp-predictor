@@ -32,9 +32,8 @@ export async function POST(request: NextRequest) {
     const resultsCollection = db.collection<GameResult>('gameResults');
     const predictionsCollection = db.collection<Prediction>('predictions');
 
-    // // Fetch current year playoff games
-    const currentYear = new Date().getFullYear();
-    const games = await fetchPlayoffGames(currentYear);
+    // Fetch 2025 playoff games from CFB API
+    const games = await fetchPlayoffGames();
 
     console.log(`Fetched ${games.length} playoff games from CFB API`);
 

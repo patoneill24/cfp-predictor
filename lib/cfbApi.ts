@@ -18,7 +18,7 @@ export interface CFBGame {
   notes: string | null;
 }
 
-export async function fetchPlayoffGames(year: number): Promise<CFBGame[]> {
+export async function fetchPlayoffGames(): Promise<CFBGame[]> {
   try {
     const headers: HeadersInit = {
       'Accept': 'application/json',
@@ -30,7 +30,7 @@ export async function fetchPlayoffGames(year: number): Promise<CFBGame[]> {
 
     // Fetch playoff games (typically postseason)
     const response = await fetch(
-      `${CFB_API_URL}/games?year=${year}&seasonType=postseason&classification=fbs`,
+      `${CFB_API_URL}/games?year=2025&seasonType=postseason&classification=fbs`,
       { headers }
     );
 
