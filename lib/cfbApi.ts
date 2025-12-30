@@ -1,4 +1,5 @@
-import { GameRound } from "./models/gameResult";
+import { quarterfinalTitles, semifinalTitles } from "@/app/api/cron/sync-results/route";
+import { GameResult, GameRound } from "./models/gameResult";
 
 const CFB_API_URL = 'https://api.collegefootballdata.com';
 const CFB_API_KEY = process.env.CFB_API_KEY;
@@ -51,24 +52,43 @@ export async function fetchPlayoffGames(year: number): Promise<CFBGame[]> {
   }
 }
 
-export async function mapCFBGameToResult(game: CFBGame, round: GameRound) {
+export async function mapCFBGameToResult(game: CFBGame, round: GameRound): Promise<GameResult> {
   const winner = game.completed && game.homePoints !== null && game.awayPoints !== null
     ? (game.homePoints > game.awayPoints ? game.homeTeam : game.awayTeam)
     : null;
 
-    //Edge case: College football API data lists JMU  as 'James Madison' 
-    // but on our site we use 'JMU'
-    if (game.homeTeam === 'James Madison') {
-      game.homeTeam = 'JMU';
-    }
-    if (game.awayTeam === 'James Madison') {
-      game.awayTeam = 'JMU';
-    }
+  //Edge case: College football API data lists JMU  as 'James Madison' 
+  // but on our site we use 'JMU'
+  if (game.homeTeam === 'James Madison') {
+    game.homeTeam = 'JMU';
+  }
+  if (game.awayTeam === 'James Madison') {
+    game.awayTeam = 'JMU';
+  }
+  
+  // match notes to title
+  if (round === 'quarterfinals'){
+    quarterfinalTitles.forEach(title => {
+      if (game.notes?.includes(title)) {
+        game.notes = title;
+      }
+    });
+  } else if (round === 'semifinals'){
+    semifinalTitles.forEach(title => {
+      if (game.notes?.includes(title)) {
+        game.notes = title;
+      }
+    });
+  } else if (round === 'championship'){
+    game.notes = 'National Championship';
+  }
+
   return {
     gameId: `${game.id}`,
     round: round as GameRound,
     team1: game.homeTeam,
     team2: game.awayTeam,
+    title: game.notes || undefined,
     team1Score: game.homePoints,
     team2Score: game.awayPoints,
     winner,

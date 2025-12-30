@@ -5,6 +5,7 @@ export interface Game {
   team1: string;
   team2: string;
   prediction: string; // winner
+  title?: string; // optional title for the game
 }
 
 export interface ChampionshipGame {
@@ -16,6 +17,7 @@ export interface ChampionshipGame {
     team1Score: number;
     team2Score: number;
   };
+  title?: string; // optional title for the game
 }
 
 export interface Bracket {

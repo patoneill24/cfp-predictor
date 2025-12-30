@@ -13,9 +13,9 @@ interface Prediction {
   score: number;
   createdAt: string;
   bracket: {
-    firstRound: Array<{ gameId: string; team1: string; team2: string; prediction: string }>;
-    quarterfinals: Array<{ gameId: string; team1: string; team2: string; prediction: string }>;
-    semifinals: Array<{ gameId: string; team1: string; team2: string; prediction: string }>;
+    firstRound: Array<{ gameId: string; team1: string; team2: string; prediction: string; title?: string }>;
+    quarterfinals: Array<{ gameId: string; team1: string; team2: string; prediction: string; title?: string }>;
+    semifinals: Array<{ gameId: string; team1: string; team2: string; prediction: string; title?: string }>;
     championship: {
       gameId: string;
       team1: string;
@@ -25,6 +25,7 @@ interface Prediction {
         team1Score: number;
         team2Score: number;
       };
+      title?: string;
     };
   };
 }
@@ -35,6 +36,7 @@ interface results {
   round: string;
   team1: string;
   team2: string;
+  title?: string;
   team1Score: number;
   team2Score: number;
   winner: string;
@@ -107,9 +109,10 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
     return null;
   }
 
-  const getPredictionResults = (round:string , team1: string, team2: string,prediction: string) => {
+  const getPredictionResults = (round:string , team1: string, team2: string,prediction: string, title?:string) => {
     if (prediction) {
-      const result = results.find((r) => r.round === round && ((r.team1 === team1 && r.team2 === team2) || (r.team1 === team2 && r.team2 === team1)));
+      const result = results.find((r) => r.round === round && ((r.team1 === team1 && r.team2 === team2) 
+      || (r.team1 === team2 && r.team2 === team1) || (r.title && (r.title === title))));
       if (!result || !result.completed) {
         return 'Not Played Yet';
       }
@@ -120,8 +123,9 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
     }
   };
 
-  const getOutlineClass = (round:string, team1: string, team2: string, prediction: string) => {
-    const result = results.find((r) => r.round === round && ((r.team1 === team1 && r.team2 === team2) || (r.team1 === team2 && r.team2 === team1)));
+  const getOutlineClass = (round:string, team1: string, team2: string, prediction: string, title?:string) => {
+    const result = results.find((r) => r.round === round && ((r.team1 === team1 && r.team2 === team2) 
+    || (r.team1 === team2 && r.team2 === team1) || (r.title && (r.title === title))));
     if (!result || !result.completed) {
       return ''; // No outline if game hasn't been played
     }
@@ -198,7 +202,7 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
                 {prediction.bracket.quarterfinals.map((game, index) => (
                   <div
                     key={game.gameId}
-                    className={`p-3 bg-gray-50 rounded-lg ${getOutlineClass('quarterfinals', game.team1, game.team2, game.prediction)}`}
+                    className={`p-3 bg-gray-50 rounded-lg ${getOutlineClass('quarterfinals', game.team1, game.team2, game.prediction, game.title)}`}
                   >
                     <div className="text-xs text-gray-500 mb-1">
                       Game {index + 1}
@@ -208,9 +212,9 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
                         {game.team1} vs {game.team2}
                       </div>
                       <div>
-                        {getPredictionResults('quarterfinals', game.team1, game.team2, game.prediction) === 'Correct' ? (
+                        {getPredictionResults('quarterfinals', game.team1, game.team2, game.prediction, game.title) === 'Correct' ? (
                           <Check size={32} className="text-green-500" />
-                        ) : getPredictionResults('quarterfinals', game.team1, game.team2, game.prediction) === 'Incorrect' ? (
+                        ) : getPredictionResults('quarterfinals', game.team1, game.team2, game.prediction, game.title) === 'Incorrect' ? (
                           <X className="text-red-500" />
                         ) : (
                           <span className="text-gray-500">Not Played Yet</span>
@@ -233,7 +237,7 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
                 {prediction.bracket.semifinals.map((game, index) => (
                   <div
                     key={game.gameId}
-                    className={`p-3 bg-gray-50 rounded-lg ${getOutlineClass('semifinals', game.team1, game.team2, game.prediction)}`}
+                    className={`p-3 bg-gray-50 rounded-lg ${getOutlineClass('semifinals', game.team1, game.team2, game.prediction, game.title)}`}
                   >
                     <div className="text-xs text-gray-500 mb-1">
                       Game {index + 1}
@@ -243,9 +247,9 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
                         {game.team1} vs {game.team2}
                       </div>
                       <div>
-                        {getPredictionResults('semifinals', game.team1, game.team2, game.prediction) === 'Correct' ? (
+                        {getPredictionResults('semifinals', game.team1, game.team2, game.prediction, game.title) === 'Correct' ? (
                           <Check size={32} className="text-green-500" />
-                        ) : getPredictionResults('semifinals', game.team1, game.team2, game.prediction) === 'Incorrect' ? (
+                        ) : getPredictionResults('semifinals', game.team1, game.team2, game.prediction, game.title) === 'Incorrect' ? (
                           <X className="text-red-500" />
                         ) : (
                           <span className="text-gray-500">Not Played Yet</span>
@@ -271,9 +275,9 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
                     {prediction.bracket.championship.team2}
                   </div>
                   <div>
-                    {getPredictionResults('championship', prediction.bracket.championship.team1, prediction.bracket.championship.team2, prediction.bracket.championship.prediction) === 'Correct' ? (
+                    {getPredictionResults('championship', prediction.bracket.championship.team1, prediction.bracket.championship.team2, prediction.bracket.championship.prediction, prediction.bracket.championship.title) === 'Correct' ? (
                       <Check size={32} className="text-green-500" />
-                    ) : getPredictionResults('championship', prediction.bracket.championship.team1, prediction.bracket.championship.team2, prediction.bracket.championship.prediction) === 'Incorrect' ? (
+                    ) : getPredictionResults('championship', prediction.bracket.championship.team1, prediction.bracket.championship.team2, prediction.bracket.championship.prediction, prediction.bracket.championship.title) === 'Incorrect' ? (
                       <X className="text-red-500" />
                     ) : (
                       <span className="text-gray-500">Not Played Yet</span>

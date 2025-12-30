@@ -4,6 +4,19 @@ import { GameResult, GameRound } from '@/lib/models/gameResult';
 import { Prediction } from '@/lib/models/prediction';
 import { fetchPlayoffGames, mapCFBGameToResult } from '@/lib/cfbApi';
 import { calculateScore } from '@/lib/scoring';
+import { addGameTitles } from '@/lib/add-game-titles';
+
+export const quarterfinalTitles = [
+  'Orange Bowl',
+  'Rose Bowl',
+  'Sugar Bowl',
+  'Cotton Bowl',
+];
+
+export const semifinalTitles = [
+  'Peach Bowl',
+  'Fiesta Bowl',
+];
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,7 +43,10 @@ export async function POST(request: NextRequest) {
     for (const game of games) {
       let round: GameRound = 'firstRound';
       switch(true) {
-        case game.notes?.includes('Semifinal'):
+        case quarterfinalTitles.some(title => game.notes?.includes(title)):
+          round = 'quarterfinals';
+          break;
+        case semifinalTitles.some(title => game.notes?.includes(title)):
           round = 'semifinals';
           break;
         case game.notes?.includes('Championship'):
@@ -59,6 +75,14 @@ export async function POST(request: NextRequest) {
     let scoresUpdated = 0;
     for (const prediction of predictions) {
       const newScore = calculateScore(prediction.bracket,allResults);
+
+      // one time update to add titles to games in brackets, can be removed later
+      const updatedPrediction = addGameTitles(prediction);
+
+      await predictionsCollection.updateOne(
+        { _id: prediction._id },
+        { $set: { bracket: updatedPrediction.bracket } }
+      );
 
       if (newScore !== prediction.score) {
         await predictionsCollection.updateOne(

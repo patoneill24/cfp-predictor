@@ -8,6 +8,7 @@ export interface GameResult {
   round: GameRound;
   team1: string;
   team2: string;
+  title?: string;
   team1Score: number | null;
   team2Score: number | null;
   winner: string | null;

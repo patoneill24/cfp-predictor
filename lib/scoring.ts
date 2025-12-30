@@ -9,13 +9,22 @@ export function calculateScore(bracket: Bracket, results: GameResult[]): number 
   const resultsMap = new Map<string, GameResult>();
   results.forEach(result => {
     if (result.completed && result.winner) {
-      const key = `${result.team1.trim()}|${result.team2.trim()}|${result.round}`;
+      let key='';
+      if (result.round === 'firstRound'){
+        key = `${result.team1.trim()}|${result.team2.trim()}|${result.round}`;
+      }else{
+        key = `${result.title}|${result.round}`;
+      }
       resultsMap.set(key, result);
     }
   });
 
-  const getResult = (team1: string, team2: string, round: string): GameResult | undefined => {
-    // Try both team orderings
+  const getResult = (team1: string, team2: string, round: string, title?: string): GameResult | undefined => {
+    // Try both team orderings (only if round is not based on title)
+    if (title){
+      const keyTitle = `${title}|${round}`;
+      return resultsMap.get(keyTitle);
+    }
     const key1 = `${team1.trim()}|${team2.trim()}|${round}`;
     const key2 = `${team2.trim()}|${team1.trim()}|${round}`;
     return resultsMap.get(key1) || resultsMap.get(key2);
@@ -36,7 +45,7 @@ export function calculateScore(bracket: Bracket, results: GameResult[]): number 
 
   // Score quarterfinals (5 points each)
   bracket.quarterfinals.forEach(game => {
-    const result = getResult(game.team1, game.team2, 'quarterfinals');
+    const result = getResult(game.team1, game.team2, 'quarterfinals', game.title);
     if (result && result.winner === game.prediction) {
       totalScore += 5;
     }
@@ -44,14 +53,14 @@ export function calculateScore(bracket: Bracket, results: GameResult[]): number 
 
   // Score semifinals (5 points each)
   bracket.semifinals.forEach(game => {
-    const result = getResult(game.team1, game.team2, 'semifinals');
+    const result = getResult(game.team1, game.team2, 'semifinals', game.title);
     if (result && result.winner === game.prediction) {
       totalScore += 5;
     }
   });
 
   // Score championship
-  const championshipResult = getResult(bracket.championship.team1, bracket.championship.team2, 'championship');
+  const championshipResult = getResult(bracket.championship.team1, bracket.championship.team2, 'championship', 'National Championship');
   if (championshipResult && championshipResult.completed) {
     // Correct winner: 5 points
     if (championshipResult.winner === bracket.championship.prediction) {
