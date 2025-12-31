@@ -4,7 +4,6 @@ import { GameResult, GameRound } from '@/lib/models/gameResult';
 import { Prediction } from '@/lib/models/prediction';
 import { fetchPlayoffGames, mapCFBGameToResult } from '@/lib/cfbApi';
 import { calculateScore } from '@/lib/scoring';
-import { addGameTitles } from '@/lib/add-game-titles';
 
 export const quarterfinalTitles = [
   'Orange Bowl',
@@ -76,12 +75,12 @@ export async function POST(request: NextRequest) {
       const newScore = calculateScore(prediction.bracket,allResults);
 
       // one time update to add titles to games in brackets, can be removed later
-      const updatedPrediction = addGameTitles(prediction);
+      // const updatedPrediction = addGameTitles(prediction);
 
-      await predictionsCollection.updateOne(
-        { _id: prediction._id },
-        { $set: { bracket: updatedPrediction.bracket } }
-      );
+      // await predictionsCollection.updateOne(
+      //   { _id: prediction._id },
+      //   { $set: { bracket: updatedPrediction.bracket } }
+      // );
 
       if (newScore !== prediction.score) {
         await predictionsCollection.updateOne(
