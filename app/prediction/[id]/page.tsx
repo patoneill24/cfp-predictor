@@ -268,7 +268,7 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
               <h3 className="text-lg font-semibold text-gray-900 mb-3">
                 Championship
               </h3>
-              <div className={`p-4 h-48 bg-blue-50 rounded-lg border-2 border-blue-200 ${getOutlineClass('championship', prediction.bracket.championship.team1, prediction.bracket.championship.team2, prediction.bracket.championship.prediction)}`}>
+              <div className={`p-4 h-48 bg-blue-50 rounded-lg border-2 border-blue-200 ${getOutlineClass('championship', prediction.bracket.championship.team1, prediction.bracket.championship.team2, prediction.bracket.championship.prediction,prediction.bracket.championship.title)}`}>
                 <div className='flex items-center justify-between'>
                   <div className="text-sm text-gray-700 mb-2">
                     {prediction.bracket.championship.team1} vs{' '}
@@ -287,17 +287,36 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
                 <div className="text-lg font-bold text-gray-900 mb-3">
                   Winner: {prediction.bracket.championship.prediction}
                 </div>
-                <div className="border-t border-blue-200 pt-3">
-                  <div className="text-xs text-gray-600 mb-2">
-                    Predicted Final Score:
+                <div className="flex justify-between border-t border-blue-200 pt-3">
+                  <div>
+                    <div className="text-xs text-gray-600 mb-2">
+                      Predicted Final Score:
+                    </div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      {prediction.bracket.championship.prediction}:{' '}
+                      {prediction.bracket.championship.predictedScore.team1Score}
+                    </div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      {prediction.bracket.championship.team2 === prediction.bracket.championship.prediction ? prediction.bracket.championship.team1 : prediction.bracket.championship.team2}:{' '}
+                      {prediction.bracket.championship.predictedScore.team2Score}
+                    </div>
                   </div>
-                  <div className="text-sm font-semibold text-gray-900">
-                    {prediction.bracket.championship.prediction}:{' '}
-                    {prediction.bracket.championship.predictedScore.team1Score}
-                  </div>
-                  <div className="text-sm font-semibold text-gray-900">
-                    {prediction.bracket.championship.team2 === prediction.bracket.championship.prediction ? prediction.bracket.championship.team1 : prediction.bracket.championship.team2}:{' '}
-                    {prediction.bracket.championship.predictedScore.team2Score}
+                  <div>
+                    <div className="text-xs text-gray-600 mb-2">
+                      Actual Final Score: 
+                    </div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      {(() => {
+                        const result = results.find((r) => r.title === prediction.bracket.championship.title);
+                        if (result && result.completed) {
+                          return <div>
+                                  {result.team1}: {result.team1Score}<br/>
+                                  {result.team2}: {result.team2Score}
+                                </div>;
+                        }
+                        return 'Not Played Yet';
+                      })()}
+                    </div>
                   </div>
                 </div>
               </div>
