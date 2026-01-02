@@ -180,7 +180,7 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
                         {getPredictionResults('firstRound', game.team1, game.team2, game.prediction) === 'Correct' ? (
                           <Check size={24} className="text-green-500" />
                         ) : getPredictionResults('firstRound', game.team1, game.team2, game.prediction) === 'Incorrect' ? (
-                          <X size={25} className="text-red-500" />
+                          <X size={24} className="text-red-500" />
                         ) : (
                           <span className="text-gray-500">Not Played Yet</span>
                         )}
@@ -213,9 +213,9 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
                       </div>
                       <div>
                         {getPredictionResults('quarterfinals', game.team1, game.team2, game.prediction, game.title) === 'Correct' ? (
-                          <Check size={32} className="text-green-500" />
+                          <Check size={24} className="text-green-500" />
                         ) : getPredictionResults('quarterfinals', game.team1, game.team2, game.prediction, game.title) === 'Incorrect' ? (
-                          <X className="text-red-500" />
+                          <X size={24} className="text-red-500" />
                         ) : (
                           <span className="text-gray-500">Not Played Yet</span>
                         )}
@@ -248,9 +248,9 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
                       </div>
                       <div>
                         {getPredictionResults('semifinals', game.team1, game.team2, game.prediction, game.title) === 'Correct' ? (
-                          <Check size={32} className="text-green-500" />
+                          <Check size={24} className="text-green-500" />
                         ) : getPredictionResults('semifinals', game.team1, game.team2, game.prediction, game.title) === 'Incorrect' ? (
-                          <X className="text-red-500" />
+                          <X size={24} className="text-red-500" />
                         ) : (
                           <span className="text-gray-500">Not Played Yet</span>
                         )}
@@ -276,9 +276,9 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
                   </div>
                   <div>
                     {getPredictionResults('championship', prediction.bracket.championship.team1, prediction.bracket.championship.team2, prediction.bracket.championship.prediction, prediction.bracket.championship.title) === 'Correct' ? (
-                      <Check size={32} className="text-green-500" />
+                      <Check size={24} className="text-green-500" />
                     ) : getPredictionResults('championship', prediction.bracket.championship.team1, prediction.bracket.championship.team2, prediction.bracket.championship.prediction, prediction.bracket.championship.title) === 'Incorrect' ? (
-                      <X className="text-red-500" />
+                      <X size={24} className="text-red-500" />
                     ) : (
                       <span className="text-gray-500">Not Played Yet</span>
                     )}
