@@ -182,13 +182,11 @@ export async function sendScoreUpdateEmail(email: string, predictionName: string
     throw new Error('RESEND_API_KEY is not set in environment variables');
   }
   const resend = new Resend(process.env.RESEND_API_KEY);
-  // send the email 9 hours from now (the cron job runs at 1 am (MST), so the email will arrive at 10 am)
-  const nineHoursFromNow = new Date(Date.now() + 1000 * 60 * 60 * 9).toISOString();
 
   await resend.emails.send({
     from: 'Bracket-IQ <update@mail.bracket-iq.app>',
     to: email,
-    subject: `Your Prediction "${predictionName}" Score Updated!`,
+    subject: `(Fixed Link) Your Prediction "${predictionName}" Score Updated!`,
     html: `
       <!DOCTYPE html>
 <html lang="en">
@@ -242,7 +240,6 @@ export async function sendScoreUpdateEmail(email: string, predictionName: string
 </body>
 </html>
     `,
-  scheduledAt: nineHoursFromNow,
   });
 
   return true;
