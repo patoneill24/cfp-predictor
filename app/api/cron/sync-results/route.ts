@@ -82,21 +82,20 @@ export async function POST(request: NextRequest) {
       //   { _id: prediction._id },
       //   { $set: { bracket: updatedPrediction.bracket } }
       // );
-
-      // send score update email
-      try {
-        await sendScoreUpdateEmail(
-          prediction.userName,
-          prediction.name,
-          newScore,
-        );
-        // Add delay between emails to avoid Resend rate limits (2 emails/sec on free tier)
-        await new Promise(resolve => setTimeout(resolve, 600));
-      } catch (error) {
-        console.error(`Error sending score update email to ${prediction.userName}:`, error);
-      }
-
+    
       if (newScore !== prediction.score) {
+        // Send email notification about score update
+        try {
+          await sendScoreUpdateEmail(
+            prediction.userName,
+            prediction.name,
+            newScore,
+          );
+            // Add delay between emails to avoid Resend rate limits (2 emails/sec on free tier)
+            await new Promise(resolve => setTimeout(resolve, 600));
+        } catch (error) {
+          console.error(`Error sending score update email to ${prediction.userName}:`, error);
+        }
         await predictionsCollection.updateOne(
           { _id: prediction._id },
           {
