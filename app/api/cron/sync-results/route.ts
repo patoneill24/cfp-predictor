@@ -86,9 +86,9 @@ export async function POST(request: NextRequest) {
       // send score update email
       try {
         await sendScoreUpdateEmail(
-          "patmanoneill@gmail.com", // replace with prediction.userEmail to send to actual users
+          prediction.userName,
           prediction.name,
-          prediction.score,
+          newScore,
         );
         // Add delay between emails to avoid Resend rate limits (2 emails/sec on free tier)
         await new Promise(resolve => setTimeout(resolve, 600));
