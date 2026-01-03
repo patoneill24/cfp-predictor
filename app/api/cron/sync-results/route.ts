@@ -4,6 +4,7 @@ import { GameResult, GameRound } from '@/lib/models/gameResult';
 import { Prediction } from '@/lib/models/prediction';
 import { fetchPlayoffGames, mapCFBGameToResult } from '@/lib/cfbApi';
 import { calculateScore } from '@/lib/scoring';
+import { sendScoreUpdateEmail } from '@/lib/email';
 
 export const quarterfinalTitles = [
   'Orange Bowl',
@@ -81,6 +82,19 @@ export async function POST(request: NextRequest) {
       //   { _id: prediction._id },
       //   { $set: { bracket: updatedPrediction.bracket } }
       // );
+
+      // send score update email
+      try {
+        await sendScoreUpdateEmail(
+          "patmanoneill@gmail.com", // replace with prediction.userEmail to send to actual users
+          prediction.name,
+          prediction.score,
+        );
+        // Add delay between emails to avoid Resend rate limits (2 emails/sec on free tier)
+        await new Promise(resolve => setTimeout(resolve, 600));
+      } catch (error) {
+        console.error(`Error sending score update email to ${prediction.userName}:`, error);
+      }
 
       if (newScore !== prediction.score) {
         await predictionsCollection.updateOne(

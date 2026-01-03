@@ -30,16 +30,11 @@ export function calculateScore(bracket: Bracket, results: GameResult[]): number 
     return resultsMap.get(key1) || resultsMap.get(key2);
   };
 
-  console.log(`Results Map: ${JSON.stringify(Array.from(resultsMap.entries()), null, 2)}`);
   // Score first round (5 points each)
   bracket.firstRound.forEach(game => {
-    console.log(`Scoring first round game: ${game.team1} vs ${game.team2} with prediction ${game.prediction}`);
     const result = getResult(game.team1, game.team2, 'firstRound');
-    console.log(`Found result: ${JSON.stringify(result, null, 2)}`);
     if (result && result.winner?.trim() === game.prediction?.trim()) {
       totalScore += 5;
-    }else{
-      console.log(`No match for first round game: ${game.team1} vs ${game.team2} with prediction ${game.prediction}`);
     }
   });
 
