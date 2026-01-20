@@ -4,7 +4,7 @@ import { GameResult, GameRound } from '@/lib/models/gameResult';
 import { Prediction } from '@/lib/models/prediction';
 import { fetchPlayoffGames, mapCFBGameToResult } from '@/lib/cfbApi';
 import { calculateScore } from '@/lib/scoring';
-import { sendScoreUpdateEmail } from '@/lib/email';
+import { sendFinalResultsEmail, sendScoreUpdateEmail } from '@/lib/email';
 
 export const quarterfinalTitles = [
   'Orange Bowl',
@@ -71,8 +71,15 @@ export async function POST(request: NextRequest) {
     const allResults = await resultsCollection.find({}).toArray();
     const predictions = await predictionsCollection.find({}).toArray();
 
+    const predictionsSorted = predictions.sort((a, b) => b.score - a.score);
+
+    const rankings = predictionsSorted.map((pred, index) => ({
+      rank: index + 1,
+      ...pred,
+    }));
+
     let scoresUpdated = 0;
-    for (const prediction of predictions) {
+    for (const prediction of rankings) {
       const newScore = calculateScore(prediction.bracket,allResults);
 
       // one time update to add titles to games in brackets, can be removed later
@@ -106,6 +113,21 @@ export async function POST(request: NextRequest) {
           }
         );
         scoresUpdated++;
+      }
+
+      // Send final results email to all users
+      try {
+        await sendFinalResultsEmail(
+          prediction.userName,
+          prediction.name,
+          prediction.rank,
+          prediction.score,
+          `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/leaderboard`
+        );
+        // Add delay between emails to avoid Resend rate limits (2 emails/sec on free tier)
+        await new Promise(resolve => setTimeout(resolve, 600));
+      } catch (error) {
+        console.error(`Error sending final results email to ${prediction.userName}:`, error);
       }
     }
 
