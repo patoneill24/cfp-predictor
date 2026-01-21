@@ -4,7 +4,7 @@ import { GameResult, GameRound } from '@/lib/models/gameResult';
 import { Prediction } from '@/lib/models/prediction';
 import { fetchPlayoffGames, mapCFBGameToResult } from '@/lib/cfbApi';
 import { calculateScore } from '@/lib/scoring';
-import { sendFinalResultsEmail, sendScoreUpdateEmail } from '@/lib/email';
+import { sendScoreUpdateEmail } from '@/lib/email';
 
 export const quarterfinalTitles = [
   'Orange Bowl',
