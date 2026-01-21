@@ -116,19 +116,19 @@ export async function POST(request: NextRequest) {
       }
 
       // Send final results email to all users
-      try {
-        await sendFinalResultsEmail(
-          prediction.userName,
-          prediction.name,
-          prediction.rank,
-          prediction.score,
-          `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/leaderboard`
-        );
-        // Add delay between emails to avoid Resend rate limits (2 emails/sec on free tier)
-        await new Promise(resolve => setTimeout(resolve, 600));
-      } catch (error) {
-        console.error(`Error sending final results email to ${prediction.userName}:`, error);
-      }
+      // try {
+      //   await sendFinalResultsEmail(
+      //     prediction.userName,
+      //     prediction.name,
+      //     prediction.rank,
+      //     prediction.score,
+      //     `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/leaderboard`
+      //   );
+      //   // Add delay between emails to avoid Resend rate limits (2 emails/sec on free tier)
+      //   await new Promise(resolve => setTimeout(resolve, 600));
+      // } catch (error) {
+      //   console.error(`Error sending final results email to ${prediction.userName}:`, error);
+      // }
     }
 
     console.log(`Updated ${scoresUpdated} prediction scores`);
