@@ -8,6 +8,8 @@ import { DeleteDialog } from '@/components/delete-dialog';
 import { NamePredictionModal } from '@/components/name-prediction-modal';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
+type Sport = 'cfb' | 'cbb';
+
 interface Prediction {
   _id: string;
   name: string;
@@ -21,6 +23,7 @@ interface Prediction {
 }
 
 export default function DashboardPage() {
+  const [sport, setSport] = useState<Sport>('cfb');
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [predictionNames, setPredictionNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +34,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchData();
-  },[]);
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -55,7 +58,7 @@ export default function DashboardPage() {
       }
       if (namesRes.ok) {
         const namesData = await namesRes.json();
-        setPredictionNames(namesData.predictions.map((p: {_id:string, name:string}) => p.name));
+        setPredictionNames(namesData.predictions.map((p: { _id: string; name: string }) => p.name));
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -103,102 +106,147 @@ export default function DashboardPage() {
     );
   }
 
+  const isCfb = sport === 'cfb';
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar current="dashboard" />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900">My Predictions</h2>
-            <p className="text-gray-600 mt-1">
-              Create and manage your playoff bracket predictions
-            </p>
-          </div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => setNameModalOpen(true)}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={true}
-              >
-                Create New Prediction
-              </button>
-            </TooltipTrigger>
-            
-            {predictions.length >=5 && (
-              <TooltipContent>
-                You have reached the maximum of 5 predictions.
-              </TooltipContent>
-            )}
-          </Tooltip>
+
+        {/* Sport selector */}
+        <div className="mb-6 flex gap-1 bg-white border border-gray-200 rounded-lg p-1 w-fit">
+          <button
+            onClick={() => setSport('cfb')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              isCfb
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            🏈 College Football
+          </button>
+          <button
+            onClick={() => setSport('cbb')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              !isCfb
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            🏀 March Madness
+          </button>
         </div>
 
-        {predictions.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              No predictions yet
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Create your first bracket prediction to get started!
-            </p>
-            <button
-              onClick={() => setNameModalOpen(true)}
-              className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-              disabled={true}
-            >
-              Create Prediction
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {predictions.map((prediction, index) => (
-              <div
-                key={prediction._id}
-                className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {prediction.name}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      {new Date(prediction.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {prediction.score}
-                    </div>
-                    <div className="text-xs text-gray-500">points</div>
-                  </div>
-                </div>
-
-                <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                  <div className="text-xs text-gray-500 mb-1">
-                    Championship Pick:
-                  </div>
-                  <div className="font-semibold text-gray-900">
-                    {prediction.bracket.championship.prediction}
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Link
-                    href={`/prediction/${prediction._id}`}
-                    className="flex-1 text-center bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm"
-                  >
-                    View Details
-                  </Link>
-                  <button
-                    onClick={() => handleDeleteClick(prediction._id, prediction.name)}
-                    className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium text-sm"
-                  >
-                    Delete
-                  </button>
-                </div>
+        {isCfb ? (
+          <>
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900">My Predictions</h2>
+                <p className="text-gray-600 mt-1">College Football Playoff bracket predictions</p>
               </div>
-            ))}
-          </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setNameModalOpen(true)}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={true}
+                  >
+                    Create New Prediction
+                  </button>
+                </TooltipTrigger>
+                {predictions.length >= 5 && (
+                  <TooltipContent>
+                    You have reached the maximum of 5 predictions.
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </div>
+
+            {predictions.length === 0 ? (
+              <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No predictions yet</h3>
+                <p className="text-gray-600 mb-6">Create your first bracket prediction to get started!</p>
+                <button
+                  onClick={() => setNameModalOpen(true)}
+                  className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                  disabled={true}
+                >
+                  Create Prediction
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {predictions.map((prediction) => (
+                  <div
+                    key={prediction._id}
+                    className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6"
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">{prediction.name}</h3>
+                        <p className="text-sm text-gray-500">
+                          {new Date(prediction.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-blue-600">{prediction.score}</div>
+                        <div className="text-xs text-gray-500">points</div>
+                      </div>
+                    </div>
+
+                    <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="text-xs text-gray-500 mb-1">Championship Pick:</div>
+                      <div className="font-semibold text-gray-900">
+                        {prediction.bracket.championship.prediction}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/prediction/${prediction._id}`}
+                        className="flex-1 text-center bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm"
+                      >
+                        View Details
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteClick(prediction._id, prediction.name)}
+                        className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium text-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900">My Predictions</h2>
+                <p className="text-gray-600 mt-1">March Madness Sweet 16 bracket predictions</p>
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={true}
+                  >
+                    Create New Prediction
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Coming soon</TooltipContent>
+              </Tooltip>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">March Madness predictions coming soon</h3>
+              <p className="text-gray-600">
+                Sweet 16 bracket predictions will be available shortly.
+              </p>
+            </div>
+          </>
         )}
       </main>
 
