@@ -27,11 +27,15 @@ export interface Bracket {
   championship: ChampionshipGame;
 }
 
+export type PredictionSport = 'cfb' | 'cbb';
+
 export interface Prediction {
   _id?: ObjectId;
   userId: ObjectId;
   userName: string; // user's email for display
   name: string; // custom name for the prediction
+  /** Defaults to cfb for legacy documents */
+  sport?: PredictionSport;
   createdAt: Date;
   updatedAt: Date;
   bracket: Bracket;

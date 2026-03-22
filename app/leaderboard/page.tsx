@@ -1,14 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '@/components/navbar';
 
+type Sport = 'cfb' | 'cbb';
+
 interface LeaderboardEntry {
   _id: string;
   userName: string;
-  name: string
+  name: string;
   score: number;
   createdAt: string;
   rank: number;
@@ -21,21 +23,19 @@ interface LeaderboardEntry {
 }
 
 export default function LeaderboardPage() {
+  const [sport, setSport] = useState<Sport>('cfb');
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const router = useRouter();
 
-  useEffect(() => {
-    fetchData();
-  }, [page]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
+      const sportQuery = sport === 'cbb' ? '&sport=cbb' : '';
       const [userRes, leaderboardRes] = await Promise.all([
         fetch('/api/auth/me'),
-        fetch(`/api/leaderboard?page=${page}&limit=50`),
+        fetch(`/api/leaderboard?page=${page}&limit=50${sportQuery}`),
       ]);
 
       if (!userRes.ok) {
@@ -55,7 +55,11 @@ export default function LeaderboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, sport, router]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (loading) {
     return (
@@ -65,15 +69,50 @@ export default function LeaderboardPage() {
     );
   }
 
+  const isCfb = sport === 'cfb';
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar current="leaderboard"/>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6 flex gap-1 bg-white border border-gray-200 rounded-lg p-1 w-fit">
+          <button
+            type="button"
+            onClick={() => {
+              setSport('cfb');
+              setPage(1);
+            }}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              isCfb
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            🏈 College Football
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSport('cbb');
+              setPage(1);
+            }}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              !isCfb
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            🏀 March Madness
+          </button>
+        </div>
+
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900">Leaderboard</h2>
           <p className="text-gray-600 mt-1">
-            Top predictions ranked by score
+            {isCfb
+              ? 'Top College Football Playoff predictions ranked by score'
+              : 'Top March Madness bracket predictions ranked by score'}
           </p>
         </div>
 

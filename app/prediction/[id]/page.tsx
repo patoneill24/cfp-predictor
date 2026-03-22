@@ -3,31 +3,21 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
+import { BasketballBracket } from '@/components/basketball-bracket';
+import { BasketballPredictionSummary } from '@/components/basketball-prediction-summary';
 import { Check } from 'lucide-react';
 import { X } from 'lucide-react';
+import type { Bracket } from '@/lib/models/prediction';
+import { predictionIsCbb } from '@/lib/basketball-bracket-storage';
 
 interface Prediction {
   _id: string;
   userName: string;
-  name:string;
+  name: string;
   score: number;
   createdAt: string;
-  bracket: {
-    firstRound: Array<{ gameId: string; team1: string; team2: string; prediction: string; title?: string }>;
-    quarterfinals: Array<{ gameId: string; team1: string; team2: string; prediction: string; title?: string }>;
-    semifinals: Array<{ gameId: string; team1: string; team2: string; prediction: string; title?: string }>;
-    championship: {
-      gameId: string;
-      team1: string;
-      team2: string;
-      prediction: string;
-      predictedScore: {
-        team1Score: number;
-        team2Score: number;
-      };
-      title?: string;
-    };
-  };
+  sport?: 'cfb' | 'cbb';
+  bracket: Bracket;
 }
 
 interface results {
@@ -61,9 +51,13 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
   useEffect(() => {
     if (id) {
       fetchPrediction();
-      fetchResults();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (!prediction || predictionIsCbb(prediction)) return;
+    fetchResults();
+  }, [prediction]);
 
   const fetchResults = async () => {
     try {
@@ -107,6 +101,54 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
 
   if (!prediction) {
     return null;
+  }
+
+  if (predictionIsCbb(prediction)) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar current="Prediction Details" />
+
+        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="mb-6 rounded-lg bg-white p-6 shadow-sm">
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">{prediction.name}</h2>
+                <p className="mt-1 text-gray-500">
+                  March Madness · Created {new Date(prediction.createdAt).toLocaleDateString()}
+                </p>
+                {(prediction.bracket.championship.predictedScore.team1Score !== 0 ||
+                  prediction.bracket.championship.predictedScore.team2Score !== 0) && (
+                  <p className="mt-2 text-sm text-gray-700">
+                    Predicted final: {prediction.bracket.championship.team1}{' '}
+                    {prediction.bracket.championship.predictedScore.team1Score} –{' '}
+                    {prediction.bracket.championship.predictedScore.team2Score}{' '}
+                    {prediction.bracket.championship.team2}
+                  </p>
+                )}
+              </div>
+              <div className="text-left sm:text-right">
+                <div className="text-3xl font-bold text-blue-600">{prediction.score}</div>
+                <div className="text-sm text-gray-500">points</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-6 rounded-lg bg-white p-6 shadow-sm">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">Picks by round</h3>
+            <BasketballPredictionSummary bracket={prediction.bracket} />
+          </div>
+
+          <div className="overflow-hidden rounded-lg bg-white shadow-sm">
+            <BasketballBracket
+              key={prediction._id}
+              readOnly
+              initialBracket={prediction.bracket}
+              name={prediction.name}
+            />
+          </div>
+        </main>
+      </div>
+    );
   }
 
   const getPredictionResults = (round:string , team1: string, team2: string,prediction: string, title?:string) => {

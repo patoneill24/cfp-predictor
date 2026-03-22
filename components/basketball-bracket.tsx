@@ -1,11 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
+import { flushSync } from "react-dom"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Trophy, RotateCcw } from "lucide-react"
 import { Team } from "./bracket"
 import { MatchupCard } from "./matchupCard"
+import type { Bracket } from "@/lib/models/prediction"
+import { isStoredCbbBracket, storedBracketToCbbUiSnapshot } from "@/lib/basketball-bracket-storage"
 
 // 2026 March Madness Sweet 16 teams — update with actual bracket when available
 const initialMatchups: [Team, Team][] = [
@@ -30,7 +33,7 @@ interface Matchup {
   winner: Team | null
 }
 
-interface BasketballBracketData {
+export interface BasketballBracketData {
   sweetSixteen: Matchup[]
   eliteEight: Matchup[]
   finalFour: Matchup[]
@@ -39,8 +42,12 @@ interface BasketballBracketData {
 
 interface BasketballBracketProps {
   onSave?: (data: BasketballBracketData) => void
+  /** Fired when the user picks a championship winner (opens score modal from parent) */
+  onChampionSelected?: (data: BasketballBracketData) => void
   readOnly?: boolean
   name?: string
+  /** When set (e.g. viewing a saved prediction), hydrate rounds from stored bracket shape */
+  initialBracket?: Bracket | null
 }
 
 function makeInitialSweetSixteen(): Matchup[] {
@@ -77,11 +84,105 @@ const initialChampionship: Matchup = {
   winner: null,
 }
 
-export function BasketballBracket({ onSave, readOnly = false, name }: BasketballBracketProps = {}) {
-  const [sweetSixteen, setSweetSixteen] = useState<Matchup[]>(makeInitialSweetSixteen)
-  const [eliteEight, setEliteEight] = useState<Matchup[]>(makeInitialEliteEight)
-  const [finalFour, setFinalFour] = useState<Matchup[]>(makeInitialFinalFour)
-  const [championship, setChampionship] = useState<Matchup>(initialChampionship)
+type MobileRound = "sweetSixteen" | "eliteEight" | "finalFour" | "championship" | "champion"
+
+const MOBILE_ROUND_TABS: { key: MobileRound; label: string }[] = [
+  { key: "sweetSixteen", label: "Sweet 16" },
+  { key: "eliteEight", label: "Elite 8" },
+  { key: "finalFour", label: "Final Four" },
+  { key: "championship", label: "Championship" },
+  { key: "champion", label: "Champion" },
+]
+
+function findNextPredictableMatchup(
+  sweetSixteen: Matchup[],
+  eliteEight: Matchup[],
+  finalFour: Matchup[],
+  championship: Matchup
+): { round: MobileRound; scrollId: string } | null {
+  for (const m of sweetSixteen) {
+    if (!m.winner) return { round: "sweetSixteen", scrollId: `bb-focus-s16-${m.id}` }
+  }
+  for (const m of eliteEight) {
+    if (m.team1 && m.team2 && !m.winner) return { round: "eliteEight", scrollId: `bb-focus-e8-${m.id}` }
+  }
+  for (const m of finalFour) {
+    if (m.team1 && m.team2 && !m.winner) return { round: "finalFour", scrollId: `bb-focus-ff-${m.id}` }
+  }
+  if (championship.team1 && championship.team2 && !championship.winner) {
+    return { round: "championship", scrollId: `bb-focus-champ-${championship.id}` }
+  }
+  if (championship.winner) {
+    return { round: "champion", scrollId: "bb-focus-champion" }
+  }
+  return null
+}
+
+function isMobileViewport() {
+  if (typeof window === "undefined") return false
+  return window.matchMedia("(max-width: 767px)").matches
+}
+
+function hydrateMatchupsFromStored(bracket: Bracket): {
+  sweetSixteen: Matchup[]
+  eliteEight: Matchup[]
+  finalFour: Matchup[]
+  championship: Matchup
+} | null {
+  if (!isStoredCbbBracket(bracket)) return null
+  const s = storedBracketToCbbUiSnapshot(bracket)
+  return {
+    sweetSixteen: s.sweetSixteen as Matchup[],
+    eliteEight: s.eliteEight as Matchup[],
+    finalFour: s.finalFour as Matchup[],
+    championship: s.championship as Matchup,
+  }
+}
+
+export function BasketballBracket({
+  onSave,
+  onChampionSelected,
+  readOnly = false,
+  name,
+  initialBracket = null,
+}: BasketballBracketProps = {}) {
+  const hydrated = initialBracket ? hydrateMatchupsFromStored(initialBracket) : null
+  const [sweetSixteen, setSweetSixteen] = useState<Matchup[]>(
+    () => hydrated?.sweetSixteen ?? makeInitialSweetSixteen()
+  )
+  const [eliteEight, setEliteEight] = useState<Matchup[]>(
+    () => hydrated?.eliteEight ?? makeInitialEliteEight()
+  )
+  const [finalFour, setFinalFour] = useState<Matchup[]>(
+    () => hydrated?.finalFour ?? makeInitialFinalFour()
+  )
+  const [championship, setChampionship] = useState<Matchup>(
+    () => hydrated?.championship ?? initialChampionship
+  )
+  const [activeMobileRound, setActiveMobileRound] = useState<MobileRound>("sweetSixteen")
+
+  const pendingMobileScroll = useRef(false)
+
+  useEffect(() => {
+    if (readOnly || !pendingMobileScroll.current) return
+    if (!isMobileViewport()) {
+      pendingMobileScroll.current = false
+      return
+    }
+    pendingMobileScroll.current = false
+    const next = findNextPredictableMatchup(sweetSixteen, eliteEight, finalFour, championship)
+    if (!next) return
+    const { round, scrollId } = next
+    // Defer out of the effect body: flushSync is not allowed inside layout/commit, and
+    // setState in the effect body triggers cascading-render lint. Timer callback is safe.
+    const timeoutId = window.setTimeout(() => {
+      flushSync(() => {
+        setActiveMobileRound(round)
+      })
+      document.getElementById(scrollId)?.scrollIntoView({ behavior: "smooth", block: "center" })
+    }, 0)
+    return () => window.clearTimeout(timeoutId)
+  }, [readOnly, sweetSixteen, eliteEight, finalFour, championship])
 
   const clearTeamFromMatchup = (matchup: Matchup, teamId: string): Matchup => {
     const updated = { ...matchup }
@@ -120,6 +221,7 @@ export function BasketballBracket({ onSave, readOnly = false, name }: Basketball
   const handleSweetSixteenWinner = (matchupId: string, winner: Team) => {
     const gameIndex = sweetSixteen.findIndex((m) => m.id === matchupId)
     if (gameIndex === -1) return
+    if (!readOnly) pendingMobileScroll.current = true
     const matchup = sweetSixteen[gameIndex]
     const eliminated = matchup.team1?.id === winner.id ? matchup.team2 : matchup.team1
 
@@ -141,6 +243,7 @@ export function BasketballBracket({ onSave, readOnly = false, name }: Basketball
   const handleEliteEightWinner = (matchupId: string, winner: Team) => {
     const gameIndex = eliteEight.findIndex((m) => m.id === matchupId)
     if (gameIndex === -1) return
+    if (!readOnly) pendingMobileScroll.current = true
     const matchup = eliteEight[gameIndex]
     const eliminated = matchup.team1?.id === winner.id ? matchup.team2 : matchup.team1
 
@@ -161,6 +264,7 @@ export function BasketballBracket({ onSave, readOnly = false, name }: Basketball
   const handleFinalFourWinner = (matchupId: string, winner: Team) => {
     const matchup = finalFour.find((m) => m.id === matchupId)
     if (!matchup) return
+    if (!readOnly) pendingMobileScroll.current = true
     const eliminated = matchup.team1?.id === winner.id ? matchup.team2 : matchup.team1
 
     setFinalFour((prev) => prev.map((m) => (m.id === matchupId ? { ...m, winner } : m)))
@@ -174,7 +278,22 @@ export function BasketballBracket({ onSave, readOnly = false, name }: Basketball
   }
 
   const handleChampionshipWinner = (winner: Team) => {
-    setChampionship((prev) => ({ ...prev, winner }))
+    if (!readOnly) pendingMobileScroll.current = true
+    const nextChampionship = { ...championship, winner }
+    setChampionship(nextChampionship)
+    if (
+      onChampionSelected &&
+      nextChampionship.team1 &&
+      nextChampionship.team2 &&
+      nextChampionship.winner
+    ) {
+      onChampionSelected({
+        sweetSixteen,
+        eliteEight,
+        finalFour,
+        championship: nextChampionship,
+      })
+    }
   }
 
   const resetBracket = () => {
@@ -182,6 +301,7 @@ export function BasketballBracket({ onSave, readOnly = false, name }: Basketball
     setEliteEight(makeInitialEliteEight())
     setFinalFour(makeInitialFinalFour())
     setChampionship(initialChampionship)
+    setActiveMobileRound("sweetSixteen")
   }
 
   const isBracketComplete = championship.winner !== null
@@ -219,8 +339,115 @@ export function BasketballBracket({ onSave, readOnly = false, name }: Basketball
         </div>
       </div>
 
-      <div className="overflow-x-auto overflow-y-hidden">
-        <div className="flex gap-6 md:gap-8 min-w-max">
+      {/* Mobile: round tabs + one round at a time */}
+      <div className="md:hidden">
+        <div
+          className="sticky top-0 z-10 -mx-4 mb-6 border-b bg-background/95 px-4 py-3 backdrop-blur supports-backdrop-filter:bg-background/80"
+          role="tablist"
+          aria-label="Bracket rounds"
+        >
+          <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {MOBILE_ROUND_TABS.map(({ key, label }) => (
+              <Button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={activeMobileRound === key}
+                variant={activeMobileRound === key ? "default" : "outline"}
+                size="sm"
+                className="shrink-0"
+                onClick={() => setActiveMobileRound(key)}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {activeMobileRound === "sweetSixteen" && (
+          <div className="flex flex-col gap-6">
+            <h2 className="text-center text-xl font-bold">Sweet 16</h2>
+            {sweetSixteen.map((matchup) => (
+              <div key={matchup.id} id={`bb-focus-s16-${matchup.id}`} className="scroll-mt-28">
+                <MatchupCard
+                  matchup={matchup}
+                  onSelectWinner={readOnly ? undefined : (w) => handleSweetSixteenWinner(matchup.id, w)}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {activeMobileRound === "eliteEight" && (
+          <div className="flex flex-col gap-6">
+            <h2 className="text-center text-xl font-bold">Elite 8</h2>
+            {eliteEight.map((matchup) => (
+              <div key={matchup.id} id={`bb-focus-e8-${matchup.id}`} className="scroll-mt-28">
+                <MatchupCard
+                  matchup={matchup}
+                  onSelectWinner={readOnly ? undefined : (w) => handleEliteEightWinner(matchup.id, w)}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {activeMobileRound === "finalFour" && (
+          <div className="flex flex-col gap-6">
+            <h2 className="text-center text-xl font-bold">Final Four</h2>
+            {finalFour.map((matchup) => (
+              <div key={matchup.id} id={`bb-focus-ff-${matchup.id}`} className="scroll-mt-28">
+                <MatchupCard
+                  matchup={matchup}
+                  onSelectWinner={readOnly ? undefined : (w) => handleFinalFourWinner(matchup.id, w)}
+                  isLarger
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {activeMobileRound === "championship" && (
+          <div className="flex flex-col gap-6">
+            <h2 className="text-center text-xl font-bold">Championship</h2>
+            <div id={`bb-focus-champ-${championship.id}`} className="scroll-mt-28">
+              <MatchupCard
+                matchup={championship}
+                onSelectWinner={readOnly ? undefined : handleChampionshipWinner}
+                isChampionship
+                isLarger
+              />
+            </div>
+          </div>
+        )}
+
+        {activeMobileRound === "champion" && (
+          <div className="flex flex-col gap-6">
+            <h2 className="text-center text-xl font-bold">Champion</h2>
+            <div id="bb-focus-champion" className="scroll-mt-28 flex justify-center">
+              <Card className="flex h-55 w-50 flex-col items-center justify-center bg-accent p-6">
+                {championship.winner ? (
+                  <div className="text-center">
+                    <Trophy className="mx-auto mb-3 h-12 w-12 text-accent-foreground" />
+                    <div className="text-sm font-medium text-accent-foreground">NCAA Champion</div>
+                    <div className="mt-2 text-xl font-bold text-accent-foreground">{championship.winner.name}</div>
+                    <div className="mt-1 text-sm text-accent-foreground/80">#{championship.winner.seed} Seed</div>
+                  </div>
+                ) : (
+                  <div className="text-center text-accent-foreground">
+                    <Trophy className="mx-auto mb-2 h-10 w-10 opacity-30" />
+                    <div className="text-sm">Complete bracket to see champion</div>
+                  </div>
+                )}
+              </Card>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop: horizontal bracket */}
+      <div className="hidden overflow-x-auto overflow-y-hidden md:block">
+        <div className="flex min-w-max gap-6 md:gap-8">
           {/* Sweet 16 */}
           <div className="flex flex-col gap-4">
             <h2 className="mb-2 text-center text-xl font-bold">Sweet 16</h2>
@@ -238,7 +465,7 @@ export function BasketballBracket({ onSave, readOnly = false, name }: Basketball
           {/* Elite 8 */}
           <div className="flex flex-col gap-4">
             <h2 className="mb-2 text-center text-xl font-bold">Elite 8</h2>
-            <div className="flex flex-col justify-around h-full gap-6">
+            <div className="flex h-full flex-col justify-around gap-6">
               {eliteEight.map((matchup) => (
                 <MatchupCard
                   key={matchup.id}
@@ -252,7 +479,7 @@ export function BasketballBracket({ onSave, readOnly = false, name }: Basketball
           {/* Final Four */}
           <div className="flex flex-col gap-4">
             <h2 className="mb-2 text-center text-xl font-bold">Final Four</h2>
-            <div className="flex flex-col justify-center gap-16 min-h-full">
+            <div className="flex min-h-full flex-col justify-center gap-150">
               {finalFour.map((matchup) => (
                 <MatchupCard
                   key={matchup.id}
@@ -267,7 +494,7 @@ export function BasketballBracket({ onSave, readOnly = false, name }: Basketball
           {/* Championship */}
           <div className="flex flex-col gap-4">
             <h2 className="mb-2 text-center text-xl font-bold">Championship</h2>
-            <div className="flex flex-col justify-center min-h-full">
+            <div className="flex min-h-full flex-col justify-center">
               <MatchupCard
                 matchup={championship}
                 onSelectWinner={readOnly ? undefined : handleChampionshipWinner}
@@ -280,7 +507,7 @@ export function BasketballBracket({ onSave, readOnly = false, name }: Basketball
           {/* Champion display */}
           <div className="flex flex-col gap-4">
             <h2 className="mb-2 text-center text-xl font-bold">Champion</h2>
-            <div className="flex flex-col justify-center min-h-full">
+            <div className="flex min-h-full flex-col justify-center">
               <Card className="flex h-55 w-50 flex-col items-center justify-center bg-accent p-6">
                 {championship.winner ? (
                   <div className="text-center">
