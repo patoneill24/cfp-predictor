@@ -317,3 +317,68 @@ export async function sendFinalResultsEmail(email: string, predictionName: strin
 
   return true;
 }
+
+export async function sendSweet16AnnouncementEmail(
+  email: string,
+  options?: { scheduledAt?: string }
+) {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY is not set in environment variables');
+  }
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const createUrl = `${baseUrl}/create`;
+
+  await resend.emails.send({
+    from: 'Bracket-IQ <update@mail.bracket-iq.app>',
+    to: email,
+    subject: 'Sweet 16 brackets are open on Bracket-IQ',
+    html: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bracket-IQ - March Madness Sweet 16 is Here!</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border-collapse: collapse; overflow: hidden;">
+          <tr>
+            <td style="background-color: #2563eb; padding: 40px 30px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Bracket-IQ</h1>
+              <p style="margin: 8px 0 0 0; color: #bfdbfe; font-size: 15px; font-weight: 400;">Built for Fans Who Think Ahead</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px 36px;">
+              <h2 style="margin: 0 0 12px 0; color: #111827; font-size: 22px; font-weight: 600;">You can now build your Sweet 16 bracket on Bracket-IQ!</h2>
+              <p style="margin: 0 0 20px 0; color: #6b7280; font-size: 16px; line-height: 1.6;">
+                The tournament field is set for the next round of the NCAA Men's Basketball Tournament. Log in to Bracket-IQ and lock in your Sweet 16 picks before games tip off.
+              </p>
+              <a href="${createUrl}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; font-size: 16px; font-weight: 600; border-radius: 8px; text-decoration: none; display: inline-block;">
+                Create your Sweet 16 bracket
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 20px 36px 32px; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0; color: #9ca3af; font-size: 12px; line-height: 1.5; text-align: center;">
+                © ${new Date().getFullYear()} Bracket-IQ. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `,
+    ...(options?.scheduledAt ? { scheduledAt: options.scheduledAt } : {}),
+  });
+
+  return true;
+}
