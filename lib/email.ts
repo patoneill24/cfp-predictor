@@ -320,7 +320,6 @@ export async function sendFinalResultsEmail(email: string, predictionName: strin
 
 export async function sendSweet16AnnouncementEmail(
   email: string,
-  options?: { scheduledAt?: string }
 ) {
   if (!process.env.RESEND_API_KEY) {
     throw new Error('RESEND_API_KEY is not set in environment variables');
@@ -328,6 +327,7 @@ export async function sendSweet16AnnouncementEmail(
   const resend = new Resend(process.env.RESEND_API_KEY);
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const createUrl = `${baseUrl}/create`;
+  const eightHoursFromNow = new Date(Date.now() + 1000 * 60 * 60 * 8).toISOString();
 
   await resend.emails.send({
     from: 'Bracket-IQ <update@mail.bracket-iq.app>',
@@ -377,7 +377,7 @@ export async function sendSweet16AnnouncementEmail(
 </body>
 </html>
     `,
-    ...(options?.scheduledAt ? { scheduledAt: options.scheduledAt } : {}),
+    scheduledAt: eightHoursFromNow,
   });
 
   return true;

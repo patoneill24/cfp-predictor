@@ -29,6 +29,7 @@ export async function GET(
 
     const prediction = await predictionsCollection.findOne({
       _id: new ObjectId(id),
+      userId: new ObjectId(session.userId),
     });
 
     if (!prediction) {

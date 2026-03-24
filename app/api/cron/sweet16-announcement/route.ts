@@ -13,23 +13,9 @@ function verifyCron(request: NextRequest): NextResponse | null {
   return null;
 }
 
-async function parseScheduledAt(request: NextRequest): Promise<string | undefined> {
-  try {
-    const body = await request.json();
-    if (body && typeof body.scheduledAt === 'string' && body.scheduledAt.length > 0) {
-      return body.scheduledAt;
-    }
-  } catch {
-    // no JSON body
-  }
-  return undefined;
-}
-
 export async function POST(request: NextRequest) {
   const unauthorized = verifyCron(request);
   if (unauthorized) return unauthorized;
-
-  const scheduledAt = await parseScheduledAt(request);
 
   try {
     const db = await getDatabase();
@@ -41,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     for (const user of users) {
       try {
-        await sendSweet16AnnouncementEmail(user.email, scheduledAt ? { scheduledAt } : undefined);
+        await sendSweet16AnnouncementEmail(user.email);
         sent++;
         await new Promise((resolve) => setTimeout(resolve, 600));
       } catch (err) {
@@ -56,7 +42,6 @@ export async function POST(request: NextRequest) {
       recipientCount: users.length,
       sent,
       failed: errors.length,
-      scheduledAt: scheduledAt ?? null,
       errors: errors.length > 0 ? errors : undefined,
     });
   } catch (error) {

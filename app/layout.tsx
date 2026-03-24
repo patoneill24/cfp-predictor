@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CFB Playoff Predictor",
-  description: "Create and track your college football playoff bracket predictions",
+  title: "College Playoff Predictor",
+  description: "Create and track your college playoff bracket predictions",
 };
 
 export const dynamic = 'force-dynamic';

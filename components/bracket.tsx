@@ -34,7 +34,7 @@ const initialTeams: Team[] = [
   { id: "12", name: "JMU", seed: 12 },
 ]
 
-interface BracketData {
+export interface BracketData {
   firstRound: Matchup[]
   quarterfinals: Matchup[]
   semifinals: Matchup[]
@@ -43,11 +43,18 @@ interface BracketData {
 
 interface BracketPredictorProps {
   onSave?: (data: BracketData) => void
+  /** Fired when the user picks a championship winner (opens score modal from parent) */
+  onChampionSelected?: (data: BracketData) => void
   readOnly?: boolean
   name?: string
 }
 
-export function BracketPredictor({ onSave, readOnly = false, name }: BracketPredictorProps = {}) {
+export function BracketPredictor({
+  onSave,
+  onChampionSelected,
+  readOnly = false,
+  name,
+}: BracketPredictorProps = {}) {
   const [firstRound, setFirstRound] = useState<Matchup[]>([
     { id: "fr1", team1: initialTeams[11], team2: initialTeams[4], winner: null }, // 12 vs 5
     { id: "fr2", team1: initialTeams[8], team2: initialTeams[7], winner: null }, // 9 vs 8
@@ -172,7 +179,21 @@ export function BracketPredictor({ onSave, readOnly = false, name }: BracketPred
   }
 
   const handleChampionshipWinner = (winner: Team) => {
-    setChampionship({ ...championship, winner })
+    const nextChampionship = { ...championship, winner }
+    setChampionship(nextChampionship)
+    if (
+      onChampionSelected &&
+      nextChampionship.team1 &&
+      nextChampionship.team2 &&
+      nextChampionship.winner
+    ) {
+      onChampionSelected({
+        firstRound,
+        quarterfinals,
+        semifinals,
+        championship: nextChampionship,
+      })
+    }
   }
 
   const handleSave = () => {

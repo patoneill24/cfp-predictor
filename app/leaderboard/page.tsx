@@ -1,14 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '@/components/navbar';
+import {  ChevronLeft, ChevronRight } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+
+type Sport = 'cfb' | 'cbb';
 
 interface LeaderboardEntry {
   _id: string;
   userName: string;
-  name: string
+  name: string;
   score: number;
   createdAt: string;
   rank: number;
@@ -23,19 +28,20 @@ interface LeaderboardEntry {
 export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const searchParams = useSearchParams();
+  const page = searchParams.get('page') ? parseInt(searchParams.get('page') || '1') : 1;
+  const limit = leaderboard.length > 0 ? searchParams.get('limit') ? parseInt(searchParams.get('limit') || '5') : 5 : 5;
+  const sport: Sport = searchParams.get('sport') === 'cbb' ? 'cbb' : 'cfb';
   const router = useRouter();
 
-  useEffect(() => {
-    fetchData();
-  }, [page]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
+      const sportQuery = sport === 'cbb' ? '&sport=cbb' : '';
+      const limitQuery = limit ? `&limit=${limit}` : '';
       const [userRes, leaderboardRes] = await Promise.all([
         fetch('/api/auth/me'),
-        fetch(`/api/leaderboard?page=${page}&limit=50`),
+        fetch(`/api/leaderboard?page=${page}${limitQuery}${sportQuery}`),
       ]);
 
       if (!userRes.ok) {
@@ -48,6 +54,7 @@ export default function LeaderboardPage() {
       if (leaderboardRes.ok) {
         const data = await leaderboardRes.json();
         setLeaderboard(data.leaderboard);
+        console.log(data.pagination);
         setTotalPages(data.pagination.totalPages);
       }
     } catch (error) {
@@ -55,7 +62,11 @@ export default function LeaderboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, sport, router,limit]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (loading) {
     return (
@@ -65,15 +76,49 @@ export default function LeaderboardPage() {
     );
   }
 
+  const isCfb = sport === 'cfb';
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar current="leaderboard"/>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6 flex gap-1 bg-white border border-gray-200 rounded-lg p-1 w-fit">
+          <button
+            type="button"
+            onClick={() => {
+              router.push(`/leaderboard?sport=cfb`);
+            }}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              isCfb
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            🏈 College Football
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              router.push(`/leaderboard?sport=cbb`);
+
+            }}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              !isCfb
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            🏀 March Madness
+          </button>
+        </div>
+
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900">Leaderboard</h2>
           <p className="text-gray-600 mt-1">
-            Top predictions ranked by score
+            {isCfb
+              ? 'Top College Football Playoff predictions ranked by score'
+              : 'Top March Madness bracket predictions ranked by score'}
           </p>
         </div>
 
@@ -103,6 +148,13 @@ export default function LeaderboardPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
+                {leaderboard.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                      No predictions found
+                    </td>
+                  </tr>
+                )}
                 {leaderboard.map((entry) => (
                   <tr
                     key={entry._id}
@@ -151,7 +203,7 @@ export default function LeaderboardPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <Link
-                        href={`/prediction/${entry._id}`}
+                        href={`/prediction/${entry._id}?sport=${sport}`}
                         className="text-blue-600 hover:text-blue-900"
                       >
                         View
@@ -163,27 +215,47 @@ export default function LeaderboardPage() {
             </table>
           </div>
 
-          {totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-              <button
-                onClick={() => setPage(page - 1)}
-                disabled={page === 1}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          
+          <div className="flex items-center justify-end gap-4 border-t px-4 py-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Rows per page</span>
+              <Select
+                value={limit.toString()}
+                onValueChange={(value) => {
+                  router.push(`/leaderboard?limit=${value}&sport=${sport}`);
+                }}
               >
-                Previous
-              </button>
-              <span className="text-sm text-gray-600">
-                Page {page} of {totalPages}
-              </span>
-              <button
-                onClick={() => setPage(page + 1)}
-                disabled={page === totalPages}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
+                <SelectTrigger size="sm" className="w-16">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push(`/leaderboard?limit=${limit}&sport=${sport}&page=${page - 1}`)}
+              disabled={page === 1}
+              className="gap-1"
+            >
+              <ChevronLeft className="size-4" />
+              <span>Previous</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push(`/leaderboard?limit=${limit}&sport=${sport}&page=${page + 1}`)}
+              disabled={page === totalPages}
+              className="gap-1"
+            >
+              <span>Next</span>
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
         </div>
       </main>
     </div>

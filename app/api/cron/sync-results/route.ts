@@ -80,7 +80,11 @@ export async function POST(request: NextRequest) {
 
     let scoresUpdated = 0;
     for (const prediction of rankings) {
-      const newScore = calculateScore(prediction.bracket,allResults);
+      if (prediction.sport === 'cbb') {
+        continue;
+      }
+
+      const newScore = calculateScore(prediction.bracket, allResults);
 
       // one time update to add titles to games in brackets, can be removed later
       // const updatedPrediction = addGameTitles(prediction);

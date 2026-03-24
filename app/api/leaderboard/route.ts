@@ -14,19 +14,24 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
     const skip = (page - 1) * limit;
+    const sportParam = searchParams.get('sport');
+    const isCbb = sportParam === 'cbb';
 
     const db = await getDatabase();
     const predictionsCollection = db.collection<Prediction>('predictions');
 
-    // Get all predictions sorted by score
+    const filter = isCbb
+      ? { sport: 'cbb' as const }
+      : { sport: { $ne: 'cbb' as const } };
+
     const predictions = await predictionsCollection
-      .find({})
+      .find(filter)
       .sort({ score: -1, createdAt: 1 })
       .skip(skip)
       .limit(limit)
       .toArray();
 
-    const total = await predictionsCollection.countDocuments({});
+    const total = await predictionsCollection.countDocuments(filter);
 
     // Add rank to each prediction
     const leaderboard = predictions.map((pred, index) => ({
@@ -41,7 +46,7 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / limit) === 0 ? 1 : Math.ceil(total / limit),
       },
     });
   } catch (error) {
