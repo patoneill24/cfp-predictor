@@ -23,7 +23,7 @@ export default function CreateMarchMadnessPage() {
     if (name) {
       setPredictionName(name);
     } else {
-      router.push('/dashboard');
+      router.push('/dashboard?sport=cbb');
     }
   }, [searchParams, router]);
 
@@ -74,7 +74,7 @@ export default function CreateMarchMadnessPage() {
         throw new Error(err.error || 'Failed to save prediction');
       }
 
-      router.push('/dashboard');
+      router.push('/dashboard?sport=cbb');
     } catch (error) {
       console.error('Error saving prediction:', error);
       alert(error instanceof Error ? error.message : 'Failed to save prediction. Please try again.');
@@ -87,7 +87,7 @@ export default function CreateMarchMadnessPage() {
       <nav className="border-b bg-white shadow-sm">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <h1 className="text-2xl font-bold text-gray-900">Create March Madness Prediction</h1>
-          <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
+          <Link href="/dashboard?sport=cbb" className="text-gray-600 hover:text-gray-900">
             Back to Dashboard
           </Link>
         </div>

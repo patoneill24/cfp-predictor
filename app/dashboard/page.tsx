@@ -8,21 +8,20 @@ import { DeleteDialog } from '@/components/delete-dialog';
 import { NamePredictionModal } from '@/components/name-prediction-modal';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Bracket } from '@/lib/models/prediction';
-import { predictionIsCbb } from '@/lib/basketball-bracket-storage';
+import { useSearchParams } from 'next/navigation';
 
-type Sport = 'cfb' | 'cbb';
+export type Sport = 'cfb' | 'cbb';
 
 interface Prediction {
   _id: string;
   name: string;
   score: number;
   createdAt: string;
-  sport?: 'cfb' | 'cbb';
+  sport?: Sport;
   bracket: Bracket;
 }
 
 export default function DashboardPage() {
-  const [sport, setSport] = useState<Sport>('cfb');
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -30,45 +29,43 @@ export default function DashboardPage() {
   const [nameModalOpen, setNameModalOpen] = useState(false);
   const [cbbNameModalOpen, setCbbNameModalOpen] = useState(false);
   const router = useRouter();
-
-  const cfbPredictions = useMemo(
-    () => predictions.filter((p) => !predictionIsCbb(p)),
-    [predictions]
-  );
-  const cbbPredictions = useMemo(
-    () => predictions.filter((p) => predictionIsCbb(p)),
-    [predictions]
-  );
+  const searchParams = useSearchParams();
+  const sport: Sport = searchParams.get('sport') === 'cbb' ? 'cbb' : 'cfb';
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const [userRes, predictionsRes] = await Promise.all([
+          fetch('/api/auth/me'),
+          fetch(`/api/predictions?sport=${sport}`),
+        ]);
 
-  const fetchData = async () => {
-    try {
-      const [userRes, predictionsRes] = await Promise.all([
-        fetch('/api/auth/me'),
-        fetch('/api/predictions'),
-      ]);
+        if (!userRes.ok) {
+          if (!cancelled) router.push('/');
+          return;
+        }
 
-      if (!userRes.ok) {
-        router.push('/');
-        return;
+        const userData = await userRes.json();
+        if (!cancelled) {
+          sessionStorage.setItem('userEmail', userData.user.email);
+        }
+
+        if (predictionsRes.ok && !cancelled) {
+          const predictionsData = await predictionsRes.json();
+          setPredictions(predictionsData.predictions);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-
-      const userData = await userRes.json();
-      sessionStorage.setItem('userEmail', userData.user.email);
-
-      if (predictionsRes.ok) {
-        const predictionsData = await predictionsRes.json();
-        setPredictions(predictionsData.predictions);
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [sport, router]);
 
   const handleDeleteClick = (id: string, name: string) => {
     setPredictionToDelete({ id, name });
@@ -92,7 +89,7 @@ export default function DashboardPage() {
   };
 
   const handleCfbNameSubmit = (name: string) => {
-    const existingNames = cfbPredictions.map((p) => p.name.toLowerCase());
+    const existingNames = predictions.map((p) => p.name.toLowerCase());
     if (existingNames.includes(name.toLowerCase())) {
       alert('There is already a prediction with that name. Please choose a different name.');
       return;
@@ -102,7 +99,7 @@ export default function DashboardPage() {
   };
 
   const handleCbbNameSubmit = (name: string) => {
-    const existingNames = cbbPredictions.map((p) => p.name.toLowerCase());
+    const existingNames = predictions.map((p) => p.name.toLowerCase());
     if (existingNames.includes(name.toLowerCase())) {
       alert('There is already a prediction with that name. Please choose a different name.');
       return;
@@ -120,8 +117,8 @@ export default function DashboardPage() {
   }
 
   const isCfb = sport === 'cfb';
-  const cfbAtMax = cfbPredictions.length >= 5;
-  const cbbAtMax = cbbPredictions.length >= 5;
+  const cfbAtMax = predictions.length >= 5;
+  const cbbAtMax = predictions.length >= 10;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -130,7 +127,7 @@ export default function DashboardPage() {
         {/* Sport selector */}
         <div className="mb-6 flex gap-1 bg-white border border-gray-200 rounded-lg p-1 w-fit">
           <button
-            onClick={() => setSport('cfb')}
+            onClick={() => router.push('/dashboard?sport=cfb')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               isCfb
                 ? 'bg-blue-600 text-white shadow-sm'
@@ -140,7 +137,7 @@ export default function DashboardPage() {
             🏈 College Football
           </button>
           <button
-            onClick={() => setSport('cbb')}
+            onClick={() => router.push('/dashboard?sport=cbb')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               !isCfb
                 ? 'bg-blue-600 text-white shadow-sm'
@@ -169,12 +166,12 @@ export default function DashboardPage() {
                   </button>
                 </TooltipTrigger>
                 {cfbAtMax && (
-                  <TooltipContent>You have reached the maximum of 5 predictions.</TooltipContent>
+                  <TooltipContent>You have reached the maximum of {cfbAtMax} predictions.</TooltipContent>
                 )}
               </Tooltip>
             </div>
 
-            {cfbPredictions.length === 0 ? (
+            {predictions.length === 0 ? (
               <div className="bg-white rounded-lg shadow-sm p-12 text-center">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">No predictions yet</h3>
                 <p className="text-gray-600 mb-6">Create your first bracket prediction to get started!</p>
@@ -188,7 +185,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {cfbPredictions.map((prediction) => (
+                {predictions.map((prediction) => (
                   <div
                     key={prediction._id}
                     className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6"
@@ -215,7 +212,7 @@ export default function DashboardPage() {
 
                     <div className="flex gap-2">
                       <Link
-                        href={`/prediction/${prediction._id}`}
+                        href={`/prediction/${prediction._id}?sport=${sport}`}
                         className="flex-1 text-center bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm"
                       >
                         View Details
@@ -251,12 +248,12 @@ export default function DashboardPage() {
                   </button>
                 </TooltipTrigger>
                 {cbbAtMax && (
-                  <TooltipContent>You have reached the maximum of 5 March Madness predictions.</TooltipContent>
+                  <TooltipContent>You have reached the maximum of {cbbAtMax} March Madness predictions.</TooltipContent>
                 )}
               </Tooltip>
             </div>
 
-            {cbbPredictions.length === 0 ? (
+            {predictions.length === 0 ? (
               <div className="bg-white rounded-lg shadow-sm p-12 text-center">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">No brackets yet</h3>
                 <p className="text-gray-600 mb-6">
@@ -273,7 +270,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {cbbPredictions.map((prediction) => (
+                {predictions.map((prediction) => (
                   <div
                     key={prediction._id}
                     className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6"
@@ -300,7 +297,7 @@ export default function DashboardPage() {
 
                     <div className="flex gap-2">
                       <Link
-                        href={`/prediction/${prediction._id}`}
+                        href={`/prediction/${prediction._id}?sport=${sport}`}
                         className="flex-1 text-center bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm"
                       >
                         View Details

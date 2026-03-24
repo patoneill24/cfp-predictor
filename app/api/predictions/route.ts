@@ -4,9 +4,10 @@ import { Prediction } from '@/lib/models/prediction';
 import { verifySession } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
 import { isStoredCbbBracket } from '@/lib/basketball-bracket-storage';
+import { Sport } from '@/app/dashboard/page';
 
 // GET all predictions for the current user
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await verifySession();
     if (!session) {
@@ -16,8 +17,11 @@ export async function GET() {
     const db = await getDatabase();
     const predictionsCollection = db.collection<Prediction>('predictions');
 
+    const { searchParams } = new URL(request.url);
+    const sport = searchParams.get('sport') as Sport;
+    const filter = sport === 'cbb' ? { sport: 'cbb' as const } : { sport: { $ne: 'cbb' as const } };
     const predictions = await predictionsCollection
-      .find({ userId: new ObjectId(session.userId) })
+      .find({ userId: new ObjectId(session.userId), ...filter })
       .sort({ createdAt: -1 })
       .toArray();
 

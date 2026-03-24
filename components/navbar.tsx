@@ -1,7 +1,7 @@
 "use client";
 import { Trophy, Menu } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSyncExternalStore, useState, useEffect } from "react";
 import { UserDropdown } from "./user-dropdown";
 import {
@@ -11,6 +11,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "./ui/sheet";
+import { Sport } from "@/app/dashboard/page";
 
 interface NavbarProps {
   current: string;
@@ -33,6 +34,8 @@ export function Navbar({ current }: NavbarProps) {
   const router = useRouter();
   const email = useSyncExternalStore(subscribe, getEmailSnapshot, getServerSnapshot);
   const [isOpen, setIsOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const sport: Sport = searchParams.get('sport') === 'cbb' ? 'cbb' : 'cfb';
 
   useEffect(() => {
     if (email === '' || email === null) {
@@ -60,13 +63,13 @@ export function Navbar({ current }: NavbarProps) {
                 </h1>
                 <div className="flex gap-6">
                   <Link
-                    href="/dashboard"
+                    href={`/dashboard?sport=${sport}`}
                     className={current === "dashboard" ? "text-blue-600 font-medium hover:text-blue-700" : "text-gray-600 hover:text-gray-900"}
                   >
                     My Predictions
                   </Link>
                   <Link
-                    href="/leaderboard"
+                    href={`/leaderboard?sport=${sport}`}
                     className={current === "leaderboard" ? "text-blue-600 font-medium hover:text-blue-700" : "text-gray-600 hover:text-gray-900"}
                   >
                     Leaderboard
@@ -104,14 +107,14 @@ export function Navbar({ current }: NavbarProps) {
                   </SheetHeader>
                   <div className="flex flex-col gap-6">
                     <Link
-                      href="/dashboard"
+                      href={`/dashboard?sport=${sport}`}
                       onClick={() => setIsOpen(false)}
                       className={current === "dashboard" ? "text-blue-600 font-medium text-lg" : "text-gray-600 text-lg hover:text-gray-900"}
                     >
                       My Predictions
                     </Link>
                     <Link
-                      href="/leaderboard"
+                      href={`/leaderboard?sport=${sport}`}
                       onClick={() => setIsOpen(false)}
                       className={current === "leaderboard" ? "text-blue-600 font-medium text-lg" : "text-gray-600 text-lg hover:text-gray-900"}
                     >

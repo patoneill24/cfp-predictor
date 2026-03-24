@@ -61,12 +61,6 @@ export function isStoredCbbBracket(bracket: Bracket): boolean {
   );
 }
 
-export function predictionIsCbb(p: { sport?: string; bracket: Bracket }): boolean {
-  if (p.sport === 'cbb') return true;
-  if (p.sport === 'cfb') return false;
-  return isStoredCbbBracket(p.bracket);
-}
-
 function gameToMatchup(g: Game): CbbSerializeMatchup {
   const team1 = g.team1 ? teamFromStoredName(g.team1) : null;
   const team2 = g.team2 ? teamFromStoredName(g.team2) : null;

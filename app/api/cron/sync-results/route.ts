@@ -5,7 +5,6 @@ import { Prediction } from '@/lib/models/prediction';
 import { fetchPlayoffGames, mapCFBGameToResult } from '@/lib/cfbApi';
 import { calculateScore } from '@/lib/scoring';
 import { sendScoreUpdateEmail } from '@/lib/email';
-import { predictionIsCbb } from '@/lib/basketball-bracket-storage';
 
 export const quarterfinalTitles = [
   'Orange Bowl',
@@ -81,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     let scoresUpdated = 0;
     for (const prediction of rankings) {
-      if (predictionIsCbb(prediction)) {
+      if (prediction.sport === 'cbb') {
         continue;
       }
 
