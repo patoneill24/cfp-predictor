@@ -228,7 +228,7 @@ export default function LeaderboardPage() {
                 <SelectTrigger size="sm" className="w-16">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="min-w-0 w-16 bg-white text-black">
                   <SelectItem value="5">5</SelectItem>
                   <SelectItem value="10">10</SelectItem>
                   <SelectItem value="20">20</SelectItem>
