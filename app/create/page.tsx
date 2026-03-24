@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { BracketPredictor, type BracketData } from '@/components/bracket';
 import { ChampionshipScoreModal } from '@/components/championship-score-modal';
+import { championshipPredictedScoresBySlot } from '@/lib/basketball-bracket-storage';
 
 export default function CreatePage() {
   const [showModal, setShowModal] = useState(false);
@@ -33,7 +34,9 @@ export default function CreatePage() {
   };
 
   const handleSaveWithScore = async (championScore: number, opponentScore: number) => {
-    if (!bracketData?.championship?.winner) return;
+    if (!bracketData) return;
+    const champ = bracketData.championship;
+    if (!champ.winner || !champ.team1 || !champ.team2) return;
 
     if (championScore < 0 || opponentScore < 0) {
       alert('Scores must be non-negative numbers.');
@@ -47,10 +50,8 @@ export default function CreatePage() {
 
     if (championScore < opponentScore) {
       const opp =
-        bracketData.championship.team1?.id === bracketData.championship.winner.id
-          ? bracketData.championship.team2?.name
-          : bracketData.championship.team1?.name;
-      alert(`The score for ${bracketData.championship.winner.name} must be higher than ${opp ?? 'the opponent'}.`);
+        champ.team1.id === champ.winner.id ? champ.team2.name : champ.team1.name;
+      alert(`The score for ${champ.winner.name} must be higher than ${opp}.`);
       return;
     }
 
@@ -58,6 +59,14 @@ export default function CreatePage() {
     setShowModal(false);
 
     try {
+      const predictedScore = championshipPredictedScoresBySlot({
+        team1Name: champ.team1.name,
+        team2Name: champ.team2.name,
+        winnerName: champ.winner.name,
+        championPoints: championScore,
+        opponentPoints: opponentScore,
+      });
+
       const bracket = {
         firstRound: bracketData.firstRound.map((m) => ({
           gameId: m.id,
@@ -79,13 +88,10 @@ export default function CreatePage() {
         })),
         championship: {
           gameId: bracketData.championship.id,
-          team1: bracketData.championship.team1?.name || '',
-          team2: bracketData.championship.team2?.name || '',
-          prediction: bracketData.championship.winner?.name || '',
-          predictedScore: {
-            team1Score: championScore,
-            team2Score: opponentScore,
-          },
+          team1: champ.team1.name,
+          team2: champ.team2.name,
+          prediction: champ.winner.name,
+          predictedScore,
         },
       };
 

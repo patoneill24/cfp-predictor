@@ -125,11 +125,6 @@ export default function PredictionDetailPage({ params }: { params: Promise<{ id:
 
         <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="mb-6 rounded-lg bg-white p-6 shadow-sm">
-          <div className="flex justify-between">
-            <Link href="/dashboard?sport=cbb" className="text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg p-2 flex items-center gap-2">
-              <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-            </Link>
-          </div>
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">{prediction.name}</h2>
