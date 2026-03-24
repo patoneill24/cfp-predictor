@@ -37,25 +37,7 @@ export default function CreateMarchMadnessPage() {
 
   const handleSaveWithScore = async (championScore: number, opponentScore: number) => {
     if (!bracketData?.championship?.winner || !bracketData.championship.team1 || !bracketData.championship.team2) {
-      return;
-    }
-
-    if (championScore < 0 || opponentScore < 0) {
-      alert('Scores must be non-negative numbers.');
-      return;
-    }
-
-    if (championScore === opponentScore) {
-      alert('Scores cannot be tied. Please enter a valid score prediction.');
-      return;
-    }
-
-    if (championScore < opponentScore) {
-      const opp =
-        bracketData.championship.team1.id === bracketData.championship.winner.id
-          ? bracketData.championship.team2.name
-          : bracketData.championship.team1.name;
-      alert(`The score for ${bracketData.championship.winner.name} must be higher than ${opp}.`);
+      console.error('Championship winner, team1, or team2 is missing');
       return;
     }
 

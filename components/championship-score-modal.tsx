@@ -1,6 +1,7 @@
 'use client';
 
 import type { Team } from '@/components/bracket';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { z } from 'zod';
@@ -30,29 +31,23 @@ export function ChampionshipScoreModal({
   onCancel,
   submitLabel = 'Create Prediction',
 }: ChampionshipScoreModalProps) {
+  const digitScoreField = z
+    .string()
+    .trim()
+    .min(1, { message: 'Enter a score' })
+    .regex(/^\d+$/, { message: 'Must be a valid number' });
+
   const scoreSchema = z
     .object({
-      championScore: z
-        .string()
-        .refine((val) => val === '' || !isNaN(Number(val)), {
-          message: 'Must be a valid number',
-        })
-        .refine((val) => val === '' || Number(val) >= 0, {
-          message: 'Score must be a non-negative number',
-        }),
-      opponentScore: z
-        .string()
-        .refine((val) => val === '' || !isNaN(Number(val)), {
-          message: 'Must be a valid number',
-        })
-        .refine((val) => val === '' || Number(val) >= 0, {
-          message: 'Score must be a non-negative number',
-        }),
+      championScore: digitScoreField,
+      opponentScore: digitScoreField,
     })
     .refine(
       (data) => {
-        if (data.championScore === '' || data.opponentScore === '') return true;
-        return Number(data.championScore) !== Number(data.opponentScore);
+        return (
+          Number.parseInt(data.championScore, 10) !==
+          Number.parseInt(data.opponentScore, 10)
+        );
       },
       {
         message: 'Scores cannot be tied',
@@ -61,8 +56,10 @@ export function ChampionshipScoreModal({
     )
     .refine(
       (data) => {
-        if (data.championScore === '' || data.opponentScore === '') return true;
-        return Number(data.championScore) > Number(data.opponentScore);
+        return (
+          Number.parseInt(data.championScore, 10) >
+          Number.parseInt(data.opponentScore, 10)
+        );
       },
       {
         message: `${champion.name} score must be higher than ${opponent.name} score`,
@@ -70,14 +67,26 @@ export function ChampionshipScoreModal({
       }
     );
 
-  const scoreForm = useForm<z.infer<typeof scoreSchema>>({
+  type ScoreFormValues = z.infer<typeof scoreSchema>;
+
+  const scoreForm = useForm<ScoreFormValues>({
     resolver: zodResolver(scoreSchema),
-    defaultValues: { championScore: '', opponentScore: '' },
+    defaultValues: { championScore: '0', opponentScore: '0' },
     mode: 'onChange',
   });
 
-  const handleFormSubmit = (data: z.infer<typeof scoreSchema>) => {
-    onSubmit(Number(data.championScore), Number(data.opponentScore));
+  const { trigger, formState } = scoreForm;
+  const { isValid, isSubmitting } = formState;
+
+  useEffect(() => {
+    void trigger();
+  }, [trigger]);
+
+  const handleFormSubmit = (data: ScoreFormValues) => {
+    onSubmit(
+      Number.parseInt(data.championScore, 10),
+      Number.parseInt(data.opponentScore, 10)
+    );
   };
 
   return (
@@ -127,7 +136,7 @@ export function ChampionshipScoreModal({
                   <FormLabel className="mb-1 block text-sm font-medium text-gray-700">{opponent.name} Score</FormLabel>
                   <FormControl>
                     <Input
-                      type="text"
+                      type="number"
                       inputMode="numeric"
                       pattern="[0-9]*"
                       value={field.value}
@@ -152,7 +161,11 @@ export function ChampionshipScoreModal({
               >
                 Cancel
               </button>
-              <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700">
+              <button
+                type="submit"
+                disabled={!isValid || isSubmitting}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
                 {submitLabel}
               </button>
             </div>
