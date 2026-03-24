@@ -13,17 +13,17 @@ import { isStoredCbbBracket, storedBracketToCbbUiSnapshot } from "@/lib/basketba
 // 2026 March Madness Sweet 16 teams — update with actual bracket when available
 const initialMatchups: [Team, Team][] = [
   // East region
-  [{ id: "1", name: "Duke", seed: 1 }, { id: "5", name: "Baylor", seed: 5 }],
-  [{ id: "4", name: "Tennessee", seed: 4 }, { id: "12", name: "Michigan St.", seed: 12 }],
-  // Midwest region
-  [{ id: "2", name: "Auburn", seed: 2 }, { id: "3", name: "Michigan", seed: 3 }],
-  [{ id: "7", name: "Marquette", seed: 7 }, { id: "10", name: "New Mexico", seed: 10 }],
+  [{ id: "1", name: "Duke", seed: 1 }, { id: "5", name: "St. John's", seed: 5 }],
+  [{ id: "4", name: "Michigan St.", seed: 3 }, { id: "12", name: "UConn", seed: 2 }],
   // South region
-  [{ id: "6", name: "Houston", seed: 1 }, { id: "8", name: "Gonzaga", seed: 5 }],
-  [{ id: "9", name: "Kentucky", seed: 2 }, { id: "11", name: "UCLA", seed: 7 }],
+  [{ id: "6", name: "Houston", seed: 2 }, { id: "8", name: "Illinois", seed: 3 }],
+  [{ id: "9", name: "Iowa", seed: 9 }, { id: "11", name: "Nebraska", seed: 4 }],
+  // Midwest region
+  [{ id: "2", name: "Iowa St.", seed: 2 }, { id: "3", name: "Tennessee", seed: 6 }],
+  [{ id: "7", name: "Michigan", seed: 7 }, { id: "10", name: "Alabama", seed: 10 }],
   // West region
-  [{ id: "13", name: "Kansas", seed: 1 }, { id: "16", name: "Creighton", seed: 4 }],
-  [{ id: "14", name: "Arizona", seed: 3 }, { id: "15", name: "Illinois", seed: 6 }],
+  [{ id: "13", name: "Texas", seed: 11 }, { id: "16", name: "Purdue", seed: 2 }],
+  [{ id: "14", name: "Arizona", seed: 1 }, { id: "15", name: "Arkansas", seed: 4 }],
 ]
 
 interface Matchup {

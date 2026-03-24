@@ -28,10 +28,10 @@ interface LeaderboardEntry {
 export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [totalPages, setTotalPages] = useState(2);
+  const [totalPages, setTotalPages] = useState(1);
   const searchParams = useSearchParams();
   const page = searchParams.get('page') ? parseInt(searchParams.get('page') || '1') : 1;
-  const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit') || '5') : 5;
+  const limit = leaderboard.length > 0 ? searchParams.get('limit') ? parseInt(searchParams.get('limit') || '5') : 5 : 5;
   const sport: Sport = searchParams.get('sport') === 'cbb' ? 'cbb' : 'cfb';
   const router = useRouter();
 
@@ -54,7 +54,7 @@ export default function LeaderboardPage() {
       if (leaderboardRes.ok) {
         const data = await leaderboardRes.json();
         setLeaderboard(data.leaderboard);
-        console.log(data.pagination.totalPages);
+        console.log(data.pagination);
         setTotalPages(data.pagination.totalPages);
       }
     } catch (error) {
@@ -148,6 +148,13 @@ export default function LeaderboardPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
+                {leaderboard.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                      No predictions found
+                    </td>
+                  </tr>
+                )}
                 {leaderboard.map((entry) => (
                   <tr
                     key={entry._id}
