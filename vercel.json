@@ -1,6 +1,0 @@
-{
-    "crons": [{
-      "path": "/api/cron/sweet16-announcement",
-      "schedule": "0 8 * * *"
-    }]
-  }
