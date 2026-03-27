@@ -242,14 +242,12 @@ export default function DashboardPage() {
                     type="button"
                     onClick={() => setCbbNameModalOpen(true)}
                     className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={cbbAtMax}
+                    disabled={true}
                   >
                     Create bracket
                   </button>
                 </TooltipTrigger>
-                {cbbAtMax && (
-                  <TooltipContent>You have reached the maximum of {cbbAtMax} March Madness predictions.</TooltipContent>
-                )}
+                  <TooltipContent>Sweet 16 round has passed</TooltipContent>
               </Tooltip>
             </div>
 
@@ -263,9 +261,9 @@ export default function DashboardPage() {
                   type="button"
                   onClick={() => setCbbNameModalOpen(true)}
                   className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={cbbAtMax}
+                  disabled={true}
                 >
-                  Create bracket
+                  Create bracket (Sweet 16 round has passed)
                 </button>
               </div>
             ) : (
