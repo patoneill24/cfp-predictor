@@ -1,22 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/mongodb';
-import { GameResult, GameRound } from '@/lib/models/gameResult';
+import { BasketballGameResult, BasketballGameRound} from '@/lib/models/gameResult';
 import { Prediction } from '@/lib/models/prediction';
-import { fetchPlayoffGames, mapCFBGameToResult } from '@/lib/cfbApi';
-import { calculateScore } from '@/lib/scoring';
+import { calculateBasketballScore } from '@/lib/scoring';
 import { sendScoreUpdateEmail } from '@/lib/email';
-
-export const quarterfinalTitles = [
-  'Orange Bowl',
-  'Rose Bowl',
-  'Sugar Bowl',
-  'Cotton Bowl',
-];
-
-export const semifinalTitles = [
-  'Peach Bowl',
-  'Fiesta Bowl',
-];
+import { fetchBasketballPlayoffGames, mapCBBGameToResult } from '@/lib/cbbApi';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,36 +17,22 @@ export async function POST(request: NextRequest) {
     }
 
     const db = await getDatabase();
-    const resultsCollection = db.collection<GameResult>('gameResults');
-    // filter for basketball predictions
+    const basketballResultsCollection = db.collection<BasketballGameResult>('basketballResults');
     const predictionsCollection = db.collection<Prediction>('predictions');
 
     // Fetch 2025 playoff games from CFB API
-    const games = await fetchPlayoffGames();
+    const games = await fetchBasketballPlayoffGames();
 
     console.log(`Fetched ${games.length} playoff games from CFB API`);
 
     // Update or insert game results
     let updatedCount = 0;
     for (const game of games) {
-      let round: GameRound = 'firstRound';
-      switch(true) {
-        case quarterfinalTitles.some(title => game.notes?.includes(title)):
-          round = 'quarterfinals';
-          break;
-        case semifinalTitles.some(title => game.notes?.includes(title)):
-          round = 'semifinals';
-          break;
-        case game.notes?.includes('Championship'):
-          round = 'championship';
-          break;
-        default:
-          round = 'firstRound';
-      }
+      const round: BasketballGameRound = 'Sweet 16';
 
-      const gameResult = await mapCFBGameToResult(game, round);
+      const gameResult = await mapCBBGameToResult(game, round);
 
-      await resultsCollection.updateOne(
+      await basketballResultsCollection.updateOne(
         { gameId: gameResult.gameId },
         { $set: gameResult },
         { upsert: true }
@@ -69,8 +43,10 @@ export async function POST(request: NextRequest) {
     console.log(`Updated ${updatedCount} game results`);
 
     // Recalculate scores for all predictions
-    const allResults = await resultsCollection.find({}).toArray();
-    const predictions = await predictionsCollection.find({}).toArray();
+    const allResults = await basketballResultsCollection.find({}).toArray();
+    const predictions = await predictionsCollection
+      .find({ sport: 'cbb' })
+      .toArray();
 
     const predictionsSorted = predictions.sort((a, b) => b.score - a.score);
 
@@ -81,15 +57,20 @@ export async function POST(request: NextRequest) {
 
     let scoresUpdated = 0;
     for (const prediction of rankings) {
-      if (prediction.sport === 'cbb') {
-        continue;
-      }
-
-      const newScore = calculateScore(prediction.bracket, allResults);
+      const newScore = calculateBasketballScore(prediction.bracket, allResults);
     
       if (newScore !== prediction.score) {
         // Send email notification about score update
         try {
+          await predictionsCollection.updateOne(
+                { _id: prediction._id },
+                {
+                  $set: {
+                    score: newScore,
+                    updatedAt: new Date(),
+                  },
+                }
+              );
           await sendScoreUpdateEmail(
             prediction.userName,
             prediction.name,
@@ -98,17 +79,8 @@ export async function POST(request: NextRequest) {
             // Add delay between emails to avoid Resend rate limits (2 emails/sec on free tier)
             await new Promise(resolve => setTimeout(resolve, 600));
         } catch (error) {
-          console.error(`Error sending score update email to ${prediction.userName}:`, error);
+          console.error(`Error updating prediction score and sending score update email to ${prediction.userName}:`, error);
         }
-        await predictionsCollection.updateOne(
-          { _id: prediction._id },
-          {
-            $set: {
-              score: newScore,
-              updatedAt: new Date(),
-            },
-          }
-        );
         scoresUpdated++;
       }
     }

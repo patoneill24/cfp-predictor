@@ -188,7 +188,7 @@ export async function sendScoreUpdateEmail(email: string, predictionName: string
   await resend.emails.send({
     from: 'Bracket-IQ <update@mail.bracket-iq.app>',
     to: email,
-    subject: `(Fixed Link) Your Prediction "${predictionName}" Score Updated!`,
+    subject: `Your Prediction "${predictionName}" Score Updated!`,
     html: `
       <!DOCTYPE html>
 <html lang="en">
@@ -214,7 +214,7 @@ export async function sendScoreUpdateEmail(email: string, predictionName: string
             <td style="padding: 48px 40px;">
               <h2 style="margin: 0 0 16px 0; color: #111827; font-size: 24px; font-weight: 600;">You're on the Board!</h2>
               <p style="margin: 0 0 24px 0; color: #6b7280; font-size: 16px; line-height: 1.6;">
-                Great news! Your College Football Playoff prediction "<strong>${predictionName}</strong>" has a score of <strong>${newScore} points</strong>.
+                Great news! Your March Madness prediction "<strong>${predictionName}</strong>" has a score of <strong>${newScore} points</strong>.
               </p>
               <p style="margin: 32px 0 0 0; color: #6b7280; font-size: 16px; line-height: 1.6;">
                 Check out how your prediction compares to other fans and keep climbing the leaderboard!
