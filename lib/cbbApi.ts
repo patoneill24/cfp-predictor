@@ -56,7 +56,13 @@ export async function mapCBBGameToResult(game: CBBGame, round: BasketballGameRou
   const winner = game.status === 'final' && game.homePoints !== null && game.awayPoints !== null
     ? (game.homePoints > game.awayPoints ? game.homeTeam : game.awayTeam)
     : null;
-  
+
+    if (game.homeTeam.includes("State")) {
+      game.homeTeam = game.homeTeam.replace("State", "St.");
+    }
+    if (game.awayTeam.includes("State")) {
+      game.awayTeam = game.awayTeam.replace("State", "St.");
+    }
 
   return {
     gameId: `${game.id}`,
