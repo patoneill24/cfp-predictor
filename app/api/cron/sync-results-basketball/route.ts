@@ -28,9 +28,19 @@ export async function POST(request: NextRequest) {
     // Update or insert game results
     let updatedCount = 0;
     for (const game of games) {
-      const round: BasketballGameRound = 'Sweet 16';
+      const notes = game.gameNotes;
+      let round: BasketballGameRound;
+      if (notes?.includes('Sweet 16')) {
+        round = 'Sweet 16';
+      } else if (notes?.includes('Elite 8')) {
+        round = 'Elite Eight';
+      } else if (notes?.includes('Final Four')) {
+        round = 'Final Four';
+      } else {
+        throw new Error(`Unknown round: ${notes}`);
+      }
 
-      const gameResult = await mapCBBGameToResult(game, round);
+      const gameResult = await mapCBBGameToResult(game, round as BasketballGameRound);
 
       await basketballResultsCollection.updateOne(
         { gameId: gameResult.gameId },

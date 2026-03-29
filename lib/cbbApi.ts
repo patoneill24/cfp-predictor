@@ -15,7 +15,7 @@ export interface CBBGame {
   homePoints: number | null;
   awayPoints: number | null;
   status: string;
-  notes: string | null;
+  gameNotes: string | null;
 }
 
 export async function fetchBasketballPlayoffGames(): Promise<CBBGame[]> {
@@ -64,13 +64,20 @@ export async function mapCBBGameToResult(game: CBBGame, round: BasketballGameRou
       game.awayTeam = game.awayTeam.replace("State", "St.");
     }
 
+    const n = game.gameNotes;
+    if (n?.includes('East Region')) game.gameNotes = 'East Region';
+    else if (n?.includes('South Region')) game.gameNotes = 'South Region';
+    else if (n?.includes('Midwest Region')) game.gameNotes = 'Midwest Region';
+    else if (n?.includes('West Region')) game.gameNotes = 'West Region'
+    else game.gameNotes = 'Test';
+
   return {
     gameId: `${game.id}`,
     round: round as BasketballGameRound,
     sport: 'cbb',
     team1: game.homeTeam,
     team2: game.awayTeam,
-    title: game.notes || undefined,
+    title: game.gameNotes || undefined,
     team1Score: game.homePoints,
     team2Score: game.awayPoints,
     winner,
