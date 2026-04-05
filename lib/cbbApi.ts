@@ -77,7 +77,7 @@ export async function mapCBBGameToResult(game: CBBGame, round: BasketballGameRou
     sport: 'cbb',
     team1: game.homeTeam,
     team2: game.awayTeam,
-    title: game.gameNotes || undefined,
+    title: `${game.id}`,
     team1Score: game.homePoints,
     team2Score: game.awayPoints,
     winner,
