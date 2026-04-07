@@ -78,6 +78,9 @@ export default function LeaderboardPage() {
 
   const isCfb = sport === 'cfb';
 
+  // get score of 1st place prediction
+  const firstPlaceScore = leaderboard[0]?.score;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar current="leaderboard"/>
@@ -171,7 +174,7 @@ export default function LeaderboardPage() {
                         >
                           #{entry.rank}
                         </span>
-                        {entry.rank === 1 && (
+                        {(entry.rank === 1 || entry.score === firstPlaceScore) && (
                           <span className="ml-2 text-yellow-500">🏆</span>
                         )}
                       </div>
