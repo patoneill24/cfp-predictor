@@ -126,7 +126,68 @@ export default function LeaderboardPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="md:hidden divide-y divide-gray-200">
+            {leaderboard.length === 0 && (
+              <div className="px-4 py-6 text-center text-gray-500">
+                No predictions found
+              </div>
+            )}
+            {leaderboard.map((entry) => (
+              <div
+                key={entry._id}
+                className={`p-4 ${entry.isCurrentUser ? 'bg-blue-50' : 'bg-white'}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="flex items-center">
+                      <span
+                        className={`text-sm font-medium ${
+                          entry.rank <= 3
+                            ? 'text-blue-600 font-bold'
+                            : 'text-gray-900'
+                        }`}
+                      >
+                        #{entry.rank}
+                      </span>
+                      {(entry.rank === 1 || entry.score === firstPlaceScore) && (
+                        <span className="ml-2 text-yellow-500">🏆</span>
+                      )}
+                    </div>
+                    <div className="mt-1 text-base font-medium text-gray-900">
+                      {entry.name}
+                      {entry.isCurrentUser && (
+                        <span className="ml-2 text-xs text-blue-600 font-medium">
+                          (You)
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-sm font-semibold text-gray-900">
+                    {entry.score} pts
+                  </div>
+                </div>
+                <div className="mt-3 space-y-1 text-sm">
+                  <p className="text-gray-700">
+                    <span className="font-medium text-gray-900">Champion:</span>{' '}
+                    {entry.bracket.championship.prediction}
+                  </p>
+                  <p className="text-gray-500">
+                    Created {new Date(entry.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="mt-3">
+                  <Link
+                    href={`/prediction/${entry._id}?sport=${sport}`}
+                    className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                  >
+                    View
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden md:block overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -221,7 +282,9 @@ export default function LeaderboardPage() {
           
           <div className="flex items-center justify-end gap-4 border-t px-4 py-3">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Rows per page</span>
+              <span className="hidden md:inline text-sm text-muted-foreground">
+                Rows per page
+              </span>
               <Select
                 value={limit.toString()}
                 onValueChange={(value) => {
