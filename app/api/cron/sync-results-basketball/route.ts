@@ -36,6 +36,8 @@ export async function POST(request: NextRequest) {
         round = 'Elite Eight';
       } else if (notes?.includes('Final Four')) {
         round = 'Final Four';
+      } else if (notes?.includes('Championship')) {
+        round = 'Championship';
       } else {
         throw new Error(`Unknown round: ${notes}`);
       }

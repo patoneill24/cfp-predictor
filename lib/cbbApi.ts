@@ -71,13 +71,15 @@ export async function mapCBBGameToResult(game: CBBGame, round: BasketballGameRou
     else if (n?.includes('West Region')) game.gameNotes = 'West Region'
     else game.gameNotes = 'Test';
 
+    const gameTitle = round === 'Championship' ? 'NCAA Championship' : game.gameNotes;
+
   return {
     gameId: `${game.id}`,
     round: round as BasketballGameRound,
     sport: 'cbb',
     team1: game.homeTeam,
     team2: game.awayTeam,
-    title: `${game.id}`,
+    title: gameTitle,
     team1Score: game.homePoints,
     team2Score: game.awayPoints,
     winner,

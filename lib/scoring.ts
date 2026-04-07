@@ -151,8 +151,9 @@ export function calculateBasketballScore(bracket: Bracket, results: BasketballGa
     bracket.championship.title ?? 'NCAA Championship'
   );
   if (championshipResult && championshipResult.completed) {
+    // 10 points for correct champion
     if (championshipResult.winner === bracket.championship.prediction) {
-      totalScore += 5;
+      totalScore += 10;
 
       if (
         championshipResult.team1Score === bracket.championship.predictedScore.team1Score &&
@@ -162,14 +163,8 @@ export function calculateBasketballScore(bracket: Bracket, results: BasketballGa
       } else {
         if (
           championshipResult.team1Score !== null &&
-          Math.abs(championshipResult.team1Score - bracket.championship.predictedScore.team1Score) <= 5
-        ) {
-          totalScore += 25;
-        }
-
-        if (
           championshipResult.team2Score !== null &&
-          Math.abs(championshipResult.team2Score - bracket.championship.predictedScore.team2Score) <= 5
+          Math.abs((championshipResult.team1Score + championshipResult.team2Score) - (bracket.championship.predictedScore.team1Score + bracket.championship.predictedScore.team2Score)) <= 10
         ) {
           totalScore += 25;
         }
